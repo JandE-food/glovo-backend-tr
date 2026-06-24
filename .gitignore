@@ -10,3 +10,6 @@ driver-app/.env.development
 backend/node_modules/
 backend/.env
 backend/.env.development
+.trae/documents/
+driver-app/.expo/
+driver-app/*.log
