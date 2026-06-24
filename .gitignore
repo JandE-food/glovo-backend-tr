@@ -1,0 +1,12 @@
+customer-app/node_modules/
+customer-app/.env
+customer-app/.env.development
+merchant-dashboard/node_modules/
+merchant-dashboard/.env
+merchant-dashboard/.env.development
+driver-app/node_modules/
+driver-app/.env
+driver-app/.env.development
+backend/node_modules/
+backend/.env
+backend/.env.development

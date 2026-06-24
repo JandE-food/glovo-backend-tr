@@ -1,0 +1,104 @@
+{
+  "common": {
+    "appName": "Cabuk Shofer",
+    "save": "Ruaj",
+    "logout": "Dil",
+    "albanian": "Shqip",
+    "english": "Anglisht",
+    "serbian": "Serbisht",
+    "tirana": "Tirane"
+  },
+  "login": {
+    "title": "Hyr",
+    "subtitle": "Behu gati per dorezimet ne Tirane dhe nis rrugen e sotme.",
+    "phoneLabel": "Numri i Telefonit",
+    "phonePlaceholder": "+355 69 000 0000",
+    "codeLabel": "Kodi i Shoferit",
+    "codePlaceholder": "CBK-AL-01",
+    "submit": "Hyr",
+    "demoHint": "Per modalitet demo, vazhdo me cdo numer telefoni dhe kod."
+  },
+  "tabs": {
+    "jobs": "Pune",
+    "pickup": "Marrje",
+    "trips": "Udhetime",
+    "settings": "Cilesime",
+    "orders": "Porosi",
+    "map": "Harta",
+    "wallet": "Kuleta",
+    "profile": "Profili"
+  },
+  "jobs": {
+    "title": "Pune te Disponueshme",
+    "subtitle": "Filtro dorezimet afer teje dhe hap rrugen.",
+    "radius": "Rrezja",
+    "neighborhood": "Zona",
+    "allNeighborhoods": "Te Gjitha Zonat",
+    "openRoute": "Hap Rrugen",
+    "acceptJob": "Prano Punen",
+    "distanceAway": "{{distance}}km larg",
+    "payout": "Pagesa",
+    "restaurant": "Restoranti",
+    "customer": "Klienti",
+    "readyNow": "Gati per marrje",
+    "socketStatus": "Fluksi live i puneve eshte i lidhur"
+  },
+  "navigation": {
+    "title": "Drejtimet",
+    "subtitle": "Shko te restoranti dhe pastaj vazhdo te klienti.",
+    "driverLocation": "Vendndodhja e Shoferit",
+    "restaurantStop": "Restoranti",
+    "customerStop": "Klienti",
+    "pickupEta": "Mberritja te restoranti",
+    "dropoffEta": "Mberritja te klienti",
+    "stepOne": "Kthehu majtas te kryqezimi",
+    "stepTwo": "Vazhdo drejt per 200m",
+    "stepThree": "Ndalo para nderteses ne te djathte",
+    "routeHint": "Rruga shfaqet fillimisht te restoranti dhe me pas te klienti."
+  },
+  "pickup": {
+    "title": "Porosi te Gatshme",
+    "subtitle": "Menaxho porosite e pergatitura me butona te shpejte progresi.",
+    "queueCount": "porosi gati",
+    "pickupReady": "Gati per Marrje",
+    "customerDropoff": "Adresa e Dorezimit"
+  },
+  "trips": {
+    "title": "Udhetimet Ditore",
+    "subtitle": "Permbledhja e rruges, kohezgjatjes dhe pageses se sotme.",
+    "todayIncome": "Fitimet e Sotme",
+    "completedTrips": "Udhetime te Perfunduara",
+    "onlineTime": "Koha Online",
+    "acceptanceRate": "Norma e Pranimit",
+    "recentTrips": "Udhetime te Fundit",
+    "ordersLabel": "{{count}} dorezime"
+  },
+  "settings": {
+    "title": "Cilesimet",
+    "subtitle": "Rregullo gjuhen, njoftimet dhe preferencat e vendndodhjes.",
+    "languageTitle": "Gjuha e Aplikacionit",
+    "languageHint": "I gjithe aplikacioni i shoferit kalon midis shqipes, anglishtes dhe serbishtes.",
+    "notifications": "Njoftimet live te porosive jane aktive",
+    "location": "Ndarja e vendndodhjes eshte aktive",
+    "support": "Linja e Ndihmes",
+    "supportValue": "+355 69 700 2285"
+  },
+  "progress": {
+    "enRoute": "Ne Rruge",
+    "arrivedStore": "Te Restoranti",
+    "pickedUp": "U Mor",
+    "atGate": "Te Dera"
+  },
+  "filters": {
+    "1km": "1km",
+    "3km": "3km",
+    "5km": "5km",
+    "10km": "10km"
+  },
+  "neighborhoods": {
+    "Blloku": "Blloku",
+    "KomunaParisit": "Komuna e Parisit",
+    "PazariRi": "Pazari i Ri",
+    "DonBosko": "Don Bosko"
+  }
+}

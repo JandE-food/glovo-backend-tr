@@ -1,0 +1,56 @@
+{
+  "common": {
+    "appName": "Cabuk Kurir",
+    "save": "Sačuvaj",
+    "logout": "Odjava",
+    "albanian": "Albanski",
+    "english": "Engleski",
+    "serbian": "Srpski",
+    "tirana": "Tirana"
+  },
+  "login": {
+    "title": "Prijava",
+    "subtitle": "Spremite se za dostave u Tirani i započnite današnju rutu.",
+    "phoneLabel": "Broj telefona",
+    "phonePlaceholder": "+355 69 000 0000",
+    "codeLabel": "Kod kurira",
+    "codePlaceholder": "CBK-AL-01",
+    "submit": "Prijavi se",
+    "demoHint": "Za demo režim nastavite sa bilo kojim brojem i kodom."
+  },
+  "tabs": {
+    "jobs": "Poslovi",
+    "pickup": "Preuzimanje",
+    "trips": "Novčanik",
+    "settings": "Profil",
+    "orders": "Porudžbine",
+    "map": "Mapa",
+    "wallet": "Novčanik",
+    "profile": "Profil"
+  },
+  "jobs": {
+    "title": "Dostupne ponude",
+    "subtitle": "Filtrirajte dostave u blizini i otvorite rutu.",
+    "radius": "Radijus",
+    "neighborhood": "Naselje",
+    "allNeighborhoods": "Sva naselja",
+    "openRoute": "Otvori rutu",
+    "acceptJob": "Prihvati",
+    "distanceAway": "{{distance}}km udaljeno",
+    "payout": "Zarada",
+    "restaurant": "Restoran",
+    "customer": "Kupac",
+    "readyNow": "Spremno za preuzimanje",
+    "socketStatus": "Povezano na live ponude"
+  },
+  "settings": {
+    "title": "Podešavanja",
+    "subtitle": "Podesite jezik, obaveštenja i lokaciju.",
+    "languageTitle": "Jezik aplikacije",
+    "languageHint": "Aplikacija se menja između albanskog, engleskog i srpskog.",
+    "notifications": "Live obaveštenja su aktivna",
+    "location": "Deljenje lokacije je aktivno",
+    "support": "Podrška",
+    "supportValue": "+355 69 700 2285"
+  }
+}

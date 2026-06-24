@@ -1,0 +1,104 @@
+{
+  "common": {
+    "appName": "Cabuk Driver",
+    "save": "Save",
+    "logout": "Log Out",
+    "albanian": "Albanian",
+    "english": "English",
+    "serbian": "Serbian",
+    "tirana": "Tirana"
+  },
+  "login": {
+    "title": "Sign In",
+    "subtitle": "Get ready for Tirana deliveries and start today's route.",
+    "phoneLabel": "Phone Number",
+    "phonePlaceholder": "+355 69 000 0000",
+    "codeLabel": "Driver Code",
+    "codePlaceholder": "CBK-AL-01",
+    "submit": "Sign In",
+    "demoHint": "For demo mode, continue with any phone and code."
+  },
+  "tabs": {
+    "jobs": "Jobs",
+    "pickup": "Pickup",
+    "trips": "Trips",
+    "settings": "Settings",
+    "orders": "Orders",
+    "map": "Map",
+    "wallet": "Wallet",
+    "profile": "Profile"
+  },
+  "jobs": {
+    "title": "Available Jobs",
+    "subtitle": "Filter nearby restaurant deliveries and open the route.",
+    "radius": "Radius",
+    "neighborhood": "Neighborhood",
+    "allNeighborhoods": "All Neighborhoods",
+    "openRoute": "Open Route",
+    "acceptJob": "Accept Job",
+    "distanceAway": "{{distance}}km away",
+    "payout": "Payout",
+    "restaurant": "Restaurant",
+    "customer": "Customer",
+    "readyNow": "Ready for pickup now",
+    "socketStatus": "Live job feed connected"
+  },
+  "navigation": {
+    "title": "Directions",
+    "subtitle": "Drive to the restaurant, then continue to the customer.",
+    "driverLocation": "Driver Location",
+    "restaurantStop": "Restaurant",
+    "customerStop": "Customer",
+    "pickupEta": "Arrival to restaurant",
+    "dropoffEta": "Arrival to customer",
+    "stepOne": "Turn left on 5th street",
+    "stepTwo": "Go straight for 200m",
+    "stepThree": "Stop in front of the building on the right",
+    "routeHint": "The route is shown as restaurant first, then customer."
+  },
+  "pickup": {
+    "title": "Ready Orders",
+    "subtitle": "Manage prepared orders with quick progress buttons.",
+    "queueCount": "Orders ready",
+    "pickupReady": "Ready To Pick Up",
+    "customerDropoff": "Dropoff Address"
+  },
+  "trips": {
+    "title": "Daily Trips",
+    "subtitle": "Your route, duration, and payout summary for today.",
+    "todayIncome": "Today's Earnings",
+    "completedTrips": "Completed Trips",
+    "onlineTime": "Online Time",
+    "acceptanceRate": "Acceptance Rate",
+    "recentTrips": "Recent Trips",
+    "ordersLabel": "{{count}} deliveries"
+  },
+  "settings": {
+    "title": "Settings",
+    "subtitle": "Adjust language, notification, and location preferences.",
+    "languageTitle": "App Language",
+    "languageHint": "The entire driver app switches between Albanian, English, and Serbian.",
+    "notifications": "Live order notifications enabled",
+    "location": "Location sharing active",
+    "support": "Support Line",
+    "supportValue": "+355 69 700 2285"
+  },
+  "progress": {
+    "enRoute": "En Route",
+    "arrivedStore": "At Store",
+    "pickedUp": "Picked Up",
+    "atGate": "At Gate"
+  },
+  "filters": {
+    "1km": "1km",
+    "3km": "3km",
+    "5km": "5km",
+    "10km": "10km"
+  },
+  "neighborhoods": {
+    "Blloku": "Blloku",
+    "KomunaParisit": "Komuna e Parisit",
+    "PazariRi": "Pazari i Ri",
+    "DonBosko": "Don Bosko"
+  }
+}

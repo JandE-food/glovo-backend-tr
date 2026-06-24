@@ -1,0 +1,37 @@
+{
+  "expo": {
+    "name": "Cabuk Driver",
+    "slug": "cabuk-driver-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "plugins": ["expo-location"],
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.joel.cabukdriver",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Your location is used for driver navigation and delivery guidance in Albania.",
+        "NSCameraUsageDescription": "Camera access is used to take your profile photo.",
+        "NSPhotoLibraryUsageDescription": "Photo library access is used to select your profile photo.",
+        "NSPhotoLibraryAddUsageDescription": "Photo library access is used to save your profile photo."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#FFF7F1"
+      },
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION",
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "READ_MEDIA_IMAGES"
+      ],
+      "package": "com.joel.cabukdriver"
+    },
+    "web": {
+      "bundler": "metro"
+    }
+  }
+}
