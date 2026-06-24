@@ -1,0 +1,71 @@
+{
+  "appName": "Cabuk",
+  "common": {
+    "girisYap": "Prijava",
+    "kayitOl": "Registracija",
+    "adSoyad": "Ime i prezime",
+    "email": "E-pošta",
+    "sifre": "Lozinka",
+    "telefon": "Telefon",
+    "adres": "Adresa",
+    "kaydet": "Sačuvaj",
+    "ode": "Plati",
+    "sepeteEkle": "Dodaj u korpu",
+    "menuyeGit": "Pogledaj meni",
+    "toplam": "Ukupno",
+    "ev": "Početna",
+    "sepet": "Korpa",
+    "siparisler": "Porudžbine",
+    "settings": "Podešavanja",
+    "albanian": "Albanski",
+    "english": "Engleski",
+    "serbian": "Srpski",
+    "adresYonetimi": "Adresar",
+    "devamEt": "Nastavi",
+    "iptal": "Otkaži",
+    "bos": "Još nema podataka",
+    "kaydediliyor": "Čuvanje..."
+  },
+  "alerts": {
+    "sepeteEklendi": "dodato u korpu.",
+    "bosSepet": "Dodajte artikle u korpu pre plaćanja.",
+    "adresGerekli": "Izaberite adresu dostave pre plaćanja.",
+    "adresSilindi": "Adresa je uspešno obrisana."
+  },
+  "errors": {
+    "network": "Greška u mreži",
+    "invalidCredentials": "Neispravni podaci",
+    "orderFailed": "Porudžbina nije uspela"
+  },
+  "settings": {
+    "title": "Podešavanja",
+    "subtitle": "Upravljajte jezikom aplikacije i podrškom.",
+    "languageTitle": "Jezik aplikacije",
+    "languageHint": "Promenite jezik između albanskog, engleskog i srpskog.",
+    "support": "Podrška",
+    "supportValue": "+355 69 700 2285"
+  },
+  "cart": {
+    "bosBaslik": "Vaša korpa je prazna",
+    "bosMetin": "Izaberite nešto ukusno i poručite odmah.",
+    "urunAdedi": "Količina",
+    "odemeBasarili": "Plaćanje je primljeno i porudžbina je kreirana.",
+    "odemeBasariliKart": "Plaćanje karticom je primljeno i porudžbina je kreirana.",
+    "odemeBasariliQr": "QR plaćanje je primljeno i porudžbina je kreirana.",
+    "odemeHatali": "Došlo je do problema pri obradi plaćanja.",
+    "odemeBasarisizKisa": "Plaćanje nije uspelo. Pokušajte ponovo.",
+    "odemeIsleniyor": "Obrada plaćanja...",
+    "teslimatBaslik": "Dostava",
+    "adresDegistir": "Promeni adresu",
+    "varsayilanTeslimat": "Podrazumevana dostava",
+    "adresYok": "Nema izabrane adrese",
+    "odemeYontemiBaslik": "Način plaćanja",
+    "kartSecenegi": "Kartica",
+    "kartAciklama": "Platite bankovnom karticom.",
+    "qrSecenegi": "QR",
+    "qrAciklama": "Platite putem QR koda.",
+    "islemUcreti": "Naknada za transakciju se dodaje na ukupan iznos.",
+    "turkBankalari": "Podržane banke",
+    "odemeAltMetin": "Potvrdom plaćanja kreirate porudžbinu."
+  }
+}

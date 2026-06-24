@@ -13,3 +13,27 @@ backend/.env.development
 .trae/documents/
 driver-app/.expo/
 driver-app/*.log
+# Local Environment Variables
+backend/.env
+**/.env
+**/.env.local
+
+# Dependency folders
+node_modules/
+**/node_modules/
+
+# Expo Cache
+driver-app/.expo/
+customer-app/.expo/
+merchant-dashboard/.expo/
+**/.expo/
+
+# Log files
+*.log
+**/*.log
+
+# Android builds
+customer-app/android/.gradle/
+customer-app/android/app/build/
+**/android/.gradle/
+**/android/app/build/

@@ -1,0 +1,209 @@
+{
+  "appName": "Cabuk",
+  "common": {
+    "girisYap": "Log In",
+    "kayitOl": "Sign Up",
+    "adSoyad": "Full Name",
+    "email": "Email",
+    "sifre": "Password",
+    "telefon": "Phone",
+    "adres": "Address",
+    "kaydet": "Save",
+    "ode": "Pay",
+    "sepeteEkle": "Add to Cart",
+    "menuyeGit": "View Menu",
+    "toplam": "Total",
+    "ev": "Home",
+    "sepet": "Cart",
+    "siparisler": "Orders",
+    "settings": "Settings",
+    "albanian": "Albanian",
+    "english": "English",
+    "serbian": "Serbian",
+    "adresYonetimi": "Address Book",
+    "devamEt": "Continue",
+    "iptal": "Cancel",
+    "bos": "No data yet",
+    "kaydediliyor": "Saving..."
+  },
+  "alerts": {
+    "sepeteEklendi": "added to cart.",
+    "bosSepet": "Add items to your cart before paying.",
+    "adresGerekli": "Select a delivery address before paying.",
+    "adresSilindi": "Address deleted successfully."
+  },
+  "errors": {
+    "network": "Network error",
+    "invalidCredentials": "Invalid credentials",
+    "orderFailed": "Order failed"
+  },
+  "auth": {
+    "girisBaslik": "Welcome to Cabuk",
+    "girisAltBaslik": "Discover Tirana's best food in minutes.",
+    "kayitAltBaslik": "Create your account and start ordering.",
+    "hesabinYok": "Don't have an account? Sign Up",
+    "hesabinVar": "Already have an account? Log In",
+    "epostaYerTutucu": "example@cabuk.com",
+    "sifreYerTutucu": "Enter your password",
+    "adSoyadYerTutucu": "Enter your full name",
+    "telefonYerTutucu": "05XX XXX XX XX",
+    "girisBasarili": "Logged in successfully.",
+    "kayitBasarili": "Your account has been created."
+  },
+  "home": {
+    "baslik": "What do you want in Tirana today?",
+    "altBaslik": "Hot byrek, tavë kosi, desserts, groceries, and pharmacy delivery in one app.",
+    "konumYok": "Location could not be retrieved",
+    "konumBekleniyor": "Getting your location for nearby places...",
+    "adresButon": "Manage Addresses",
+    "restoranPuani": "Rating",
+    "teslimat": "Delivery",
+    "teslimatNereye": "DELIVERY ADDRESS",
+    "aramaYerTutucu": "Search food, groceries, dessert, or pharmacy...",
+    "firsatBaslik": "Free delivery on your first order",
+    "firsatAltMetin": "Explore your favorite Tirana flavors with Cabuk at no extra delivery cost.",
+    "firsatButon": "Claim Offer",
+    "onerilenBaslik": "Featured Places",
+    "hizliAlanlar": {
+      "food": "Food",
+      "grocery": "Groceries",
+      "pharmacy": "Pharmacy",
+      "dessert": "Dessert"
+    }
+  },
+  "cart": {
+    "bosBaslik": "Your cart is empty",
+    "bosMetin": "Pick something delicious and place your order right away.",
+    "urunAdedi": "Quantity",
+    "odemeBasarili": "Your payment was received and your order was created.",
+    "odemeBasariliKart": "Your card payment was received and your order was created.",
+    "odemeBasariliQr": "Your Albanian QR payment was received and your order was created.",
+    "odemeHatali": "There was a problem while processing your payment.",
+    "odemeBasarisizKisa": "Error: Payment failed",
+    "odemeIsleniyor": "Processing payment...",
+    "siparisOlusturmaHatasi": "Payment was received, but the order record could not be created.",
+    "odemeAltMetin": "Paystack checkout supports card and QR payments.",
+    "teslimatBaslik": "Delivery Address",
+    "adresDegistir": "Change Address",
+    "varsayilanTeslimat": "Selected delivery address",
+    "adresYok": "There is no selected delivery address yet",
+    "odemeYontemiBaslik": "Payment Method",
+    "kartSecenegi": "Card",
+    "kartAciklama": "Pay by debit or credit card through Paystack checkout.",
+    "qrSecenegi": "Albanian QR",
+    "qrAciklama": "Pay from supported banking apps using the national Albanian QR flow.",
+    "islemUcreti": "Transaction fee: ALL 100",
+    "turkBankalari": "Supported banks"
+  },
+  "orders": {
+    "baslik": "Your Order History",
+    "detayBaslik": "Order Details",
+    "detayAltBaslik": "Follow the live driver location and view the delivery route.",
+    "teslimatAdresi": "Delivery Address",
+    "surucuKonumu": "Driver Location",
+    "restoran": "Restaurant",
+    "teslimatNoktasi": "Delivery Point",
+    "yol": "Yol",
+    "statusUpdated": "Sipariş durumunuz güncellendi: {{status}}",
+    "durum": {
+      "sipariş_alındı": "sipariş_alındı",
+      "hazırlanıyor": "hazırlanıyor",
+      "alındı": "alındı",
+      "yaklaşıyor": "yaklaşıyor",
+      "kapıda": "kapıda",
+      "teslim_edildi": "teslim_edildi",
+      "reddedildi": "reddedildi",
+      "preparing": "Preparing",
+      "onTheWay": "On the way",
+      "delivered": "Delivered",
+      "cancelled": "Cancelled"
+    }
+  },
+  "address": {
+    "baslik": "Address Book",
+    "altBaslik": "Fill in your Tirana delivery address details completely.",
+    "mahalle": "Neighborhood",
+    "sokak": "Street",
+    "apartman": "Building",
+    "apartmanNo": "Building No",
+    "kat": "Floor",
+    "daire": "Apartment",
+    "postaKodu": "Postal Code",
+    "ilce": "District",
+    "il": "City",
+    "varsayilan": "Save as default address",
+    "kayitliAdresler": "Saved Addresses",
+    "kaydetButon": "Save Address",
+    "kayitBasarili": "Your address has been saved.",
+    "guncelleButon": "Update Address",
+    "guncelleBasarili": "Your address has been updated.",
+    "mahalleSec": "Select a neighborhood",
+    "mahalleZorunlu": "Neighborhood selection is required",
+    "postaKoduHatali": "Postal code must be 5 digits",
+    "kaydetmeHatasi": "An error occurred while saving the address",
+    "guncellemeHatasi": "An error occurred while updating the address",
+    "sil": "Delete",
+    "duzenle": "Edit",
+    "varsayilanYap": "Set as Default",
+    "listeYukleniyor": "Loading addresses...",
+    "teslimatSecildi": "Selected for delivery"
+  },
+  "categories": {
+    "all": "All",
+    "restaurants": "Restaurants",
+    "breakfast": "Breakfast",
+    "pide": "Pide & Simit",
+    "desserts": "Kunefe & Desserts",
+    "market": "Groceries",
+    "pharmacy": "Pharmacy"
+  },
+  "restaurants": {
+    "eminonuLokmasi": {
+      "name": "Blloku Trilece House",
+      "description": "Fresh trilece and warm bakery desserts"
+    },
+    "besiktasKahvalti": {
+      "name": "Downtown Breakfast Table",
+      "description": "A rich breakfast plate with byrek and cheese"
+    },
+    "uskudarPide": {
+      "name": "Komuna Tavë & Byrek",
+      "description": "Hot tavë kosi and fresh baked byrek"
+    },
+    "kadikoyMarket": {
+      "name": "Pazari i Ri Express Market",
+      "description": "Fresh products and daily essentials"
+    },
+    "beyogluEczane": {
+      "name": "Tirana Duty Pharmacy",
+      "description": "Urgent pharmacy essentials delivered to your door"
+    }
+  },
+  "menu": {
+    "baslik": "Menu",
+    "simit": {
+      "name": "Byrek",
+      "description": "Fresh baked byrek prepared daily with flaky layers"
+    },
+    "pide": {
+      "name": "Tavë Kosi",
+      "description": "Warm baked lamb and yogurt casserole"
+    },
+    "kunefe": {
+      "name": "Trilece",
+      "description": "Soft milk cake finished with caramel"
+    },
+    "cigKofte": {
+      "name": "Qofte",
+      "description": "Seasoned meatballs served with fresh sides"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "subtitle": "Switch the whole customer app between English and Albanian.",
+    "languageTitle": "App Language",
+    "languageHint": "Choose the display language for the full customer app.",
+    "support": "Support Line",
+    "supportValue": "+355 69 700 2285"
+  }
+}

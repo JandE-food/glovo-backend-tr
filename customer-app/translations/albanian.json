@@ -1,0 +1,207 @@
+{
+  "appName": "Cabuk",
+  "common": {
+    "girisYap": "Hyr",
+    "kayitOl": "Regjistrohu",
+    "adSoyad": "Emri i Plote",
+    "email": "Email",
+    "sifre": "Fjalekalimi",
+    "telefon": "Telefoni",
+    "adres": "Adresa",
+    "kaydet": "Ruaj",
+    "ode": "Paguaj",
+    "sepeteEkle": "Shto ne Shporte",
+    "menuyeGit": "Shiko Menune",
+    "toplam": "Totali",
+    "ev": "Ballina",
+    "sepet": "Shporta",
+    "siparisler": "Porosite",
+    "settings": "Cilesimet",
+    "albanian": "Shqip",
+    "english": "Anglisht",
+    "serbian": "Serbisht",
+    "adresYonetimi": "Libri i Adresave",
+    "devamEt": "Vazhdo",
+    "iptal": "Anulo",
+    "bos": "Nuk ka ende te dhena",
+    "kaydediliyor": "Duke ruajtur..."
+  },
+  "alerts": {
+    "sepeteEklendi": "u shtua ne shporte.",
+    "bosSepet": "Shto artikuj ne shporte para pageses.",
+    "adresGerekli": "Zgjidh nje adrese dorezimi para pageses.",
+    "adresSilindi": "Adresa u fshi me sukses."
+  },
+  "errors": {
+    "network": "Gabim rrjeti",
+    "invalidCredentials": "Kredenciale te pavlefshme",
+    "orderFailed": "Porosia deshtoi"
+  },
+  "auth": {
+    "girisBaslik": "Miresevjen ne Cabuk",
+    "girisAltBaslik": "Zbulo ushqimin me te mire te Tiranes ne pak minuta.",
+    "kayitAltBaslik": "Krijo llogarine dhe fillo porositjen.",
+    "hesabinYok": "Nuk ke llogari? Regjistrohu",
+    "hesabinVar": "Ke tashme llogari? Hyr",
+    "epostaYerTutucu": "shembull@cabuk.com",
+    "sifreYerTutucu": "Shkruaj fjalekalimin",
+    "adSoyadYerTutucu": "Shkruaj emrin e plote",
+    "telefonYerTutucu": "+355 69 000 0000",
+    "girisBasarili": "Hyre me sukses.",
+    "kayitBasarili": "Llogaria u krijua me sukses."
+  },
+  "home": {
+    "baslik": "Cfare do sot ne Tirane?",
+    "altBaslik": "Byrek i ngrohte, tavë kosi, embelsira, market dhe farmaci ne nje aplikacion.",
+    "konumYok": "Vendndodhja nuk mund te merrej",
+    "konumBekleniyor": "Po marrim vendndodhjen tende per vendet afer...",
+    "adresButon": "Menaxho Adresat",
+    "restoranPuani": "Vleresimi",
+    "teslimat": "Dorezimi",
+    "teslimatNereye": "ADRESA E DOREZIMIT",
+    "aramaYerTutucu": "Kerko ushqim, market, embelsire ose farmaci...",
+    "firsatBaslik": "Dorezim falas ne porosine e pare",
+    "firsatAltMetin": "Zbulo shijet e preferuara te Tiranes me Cabuk pa kosto shtese dorezimi.",
+    "firsatButon": "Merr Oferten",
+    "onerilenBaslik": "Vende te Rekomanduara",
+    "hizliAlanlar": {
+      "food": "Ushqim",
+      "grocery": "Market",
+      "pharmacy": "Farmaci",
+      "dessert": "Embelsire"
+    }
+  },
+  "cart": {
+    "bosBaslik": "Shporta jote eshte bosh",
+    "bosMetin": "Zgjidh dicka te shijshme dhe bej porosine menjehere.",
+    "urunAdedi": "Sasia",
+    "odemeBasarili": "Pagesa u mor dhe porosia u krijua.",
+    "odemeBasariliKart": "Pagesa me karte u mor dhe porosia u krijua.",
+    "odemeBasariliQr": "Pagesa me QR shqiptar u mor dhe porosia u krijua.",
+    "odemeHatali": "Pati nje problem gjate perpunimit te pageses.",
+    "odemeBasarisizKisa": "Gabim: Pagesa deshtoi",
+    "odemeIsleniyor": "Duke perpunuar pagesen...",
+    "siparisOlusturmaHatasi": "Pagesa u mor, por porosia nuk mund te krijohej.",
+    "odemeAltMetin": "Paystack checkout mbeshtet pagesa me karte dhe QR.",
+    "teslimatBaslik": "Adresa e Dorezimit",
+    "adresDegistir": "Ndrysho Adresen",
+    "varsayilanTeslimat": "Adresa e zgjedhur e dorezimit",
+    "adresYok": "Nuk ka ende adrese dorezimi te zgjedhur",
+    "odemeYontemiBaslik": "Menyra e Pageses",
+    "kartSecenegi": "Karte",
+    "kartAciklama": "Paguaj me karte debiti ose krediti permes Paystack checkout.",
+    "qrSecenegi": "QR Shqiptar",
+    "qrAciklama": "Paguaj nga aplikacionet bankare te mbeshtetura permes rrjedhes kombetare QR.",
+    "islemUcreti": "Tarifa e transaksionit: ALL 100",
+    "turkBankalari": "Bankat e mbeshtetura"
+  },
+  "orders": {
+    "baslik": "Historiku i Porosive",
+    "detayBaslik": "Detajet e Porosise",
+    "detayAltBaslik": "Ndiq vendndodhjen live te shoferit dhe shiko rrugen e dorezimit.",
+    "teslimatAdresi": "Adresa e Dorezimit",
+    "surucuKonumu": "Vendndodhja e Shoferit",
+    "restoran": "Restoranti",
+    "teslimatNoktasi": "Pika e Dorezimit",
+    "yol": "Rruga",
+    "statusUpdated": "Statusi i porosise u perditesua: {{status}}",
+    "durum": {
+      "received": "u mor",
+      "preparing": "duke u pergatitur",
+      "ready": "gati",
+      "approaching": "duke u afruar",
+      "at_door": "te dera",
+      "delivered": "u dorezua",
+      "cancelled": "u anulua",
+      "onTheWay": "rruges",
+      "preparingLegacy": "duke pergatitur"
+    }
+  },
+  "address": {
+    "baslik": "Libri i Adresave",
+    "altBaslik": "Ploteso sakte detajet e adreses se dorezimit ne Tirane.",
+    "mahalle": "Zona",
+    "sokak": "Rruga",
+    "apartman": "Ndertesa",
+    "apartmanNo": "Nr. Ndertese",
+    "kat": "Kati",
+    "daire": "Apartamenti",
+    "postaKodu": "Kodi Postar",
+    "ilce": "Njesia",
+    "il": "Qyteti",
+    "varsayilan": "Ruaje si adrese paresore",
+    "kayitliAdresler": "Adresat e Ruajtura",
+    "kaydetButon": "Ruaj Adresen",
+    "kayitBasarili": "Adresa u ruajt.",
+    "guncelleButon": "Perditeso Adresen",
+    "guncelleBasarili": "Adresa u perditesua.",
+    "mahalleSec": "Zgjidh nje zone",
+    "mahalleZorunlu": "Zgjedhja e zones eshte e detyrueshme",
+    "postaKoduHatali": "Kodi postar duhet te kete 5 shifra",
+    "kaydetmeHatasi": "Ndodhi nje gabim gjate ruajtjes se adreses",
+    "guncellemeHatasi": "Ndodhi nje gabim gjate perditesimit te adreses",
+    "sil": "Fshi",
+    "duzenle": "Ndrysho",
+    "varsayilanYap": "Vendose si paresore",
+    "listeYukleniyor": "Adresat po ngarkohen...",
+    "teslimatSecildi": "U zgjodh per dorezim"
+  },
+  "categories": {
+    "all": "Te Gjitha",
+    "restaurants": "Restorante",
+    "breakfast": "Mengjes",
+    "pide": "Byrek & Tavë",
+    "desserts": "Embelsira",
+    "market": "Market",
+    "pharmacy": "Farmaci"
+  },
+  "restaurants": {
+    "eminonuLokmasi": {
+      "name": "Blloku Trilece House",
+      "description": "Trilece e fresket dhe embelsira furre"
+    },
+    "besiktasKahvalti": {
+      "name": "Downtown Breakfast Table",
+      "description": "Mengjes i pasur me byrek dhe djathe"
+    },
+    "uskudarPide": {
+      "name": "Komuna Tavë & Byrek",
+      "description": "Tavë kosi e ngrohte dhe byrek i pjekur"
+    },
+    "kadikoyMarket": {
+      "name": "Pazari i Ri Express Market",
+      "description": "Produkte te fresketa dhe nevoja ditore"
+    },
+    "beyogluEczane": {
+      "name": "Tirana Duty Pharmacy",
+      "description": "Produktet urgjente te farmacise ne deren tende"
+    }
+  },
+  "menu": {
+    "baslik": "Menuja",
+    "simit": {
+      "name": "Byrek",
+      "description": "Byrek i pjekur cdo dite me pete te holla"
+    },
+    "pide": {
+      "name": "Tave Kosi",
+      "description": "Gjelle e ngrohte me mish qengji dhe kos"
+    },
+    "kunefe": {
+      "name": "Trilece",
+      "description": "Embelsire me qumesht dhe karamel"
+    },
+    "cigKofte": {
+      "name": "Qofte",
+      "description": "Qofte te kalitura te sherbyera me garniture"
+    }
+  },
+  "settings": {
+    "title": "Cilesimet",
+    "subtitle": "Kalo tere aplikacionin e klientit midis anglishtes dhe shqipes.",
+    "languageTitle": "Gjuha e Aplikacionit",
+    "languageHint": "Zgjidh gjuhen e shfaqjes per tere aplikacionin e klientit.",
+    "support": "Linja e Ndihmes",
+    "supportValue": "+355 69 700 2285"
+  }
+}

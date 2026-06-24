@@ -1,0 +1,43 @@
+{
+  "expo": {
+    "name": "Cabuk",
+    "slug": "cabuk-customer-app",
+    "scheme": "cabuk",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "plugins": [
+      "expo-location"
+    ],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.joel.cabuk",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Your location is used to show nearby restaurants in Albania."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#F4F8F1"
+      },
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
+      ],
+      "package": "com.joel.cabuk"
+    },
+    "web": {
+      "bundler": "metro"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "817fbd84-7be3-4dcd-b3fe-9ac5e8df451f"
+      }
+    }
+  }
+}
