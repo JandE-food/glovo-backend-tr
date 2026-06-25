@@ -8,6 +8,7 @@ import { ScreenContainer } from '../components/ScreenContainer';
 import {
   getApiErrorMessage,
   getOrders,
+  isNetworkUnavailableError,
   listenDriverLocation,
   type DriverLocation
 } from '../services/api';
@@ -91,7 +92,10 @@ export const OrderDetailsScreen = ({ route }: Props) => {
         }
 
         setOrders(localOrders);
-        Alert.alert(t('common.siparisler'), getApiErrorMessage(error, t('errors.network')));
+
+        if (!isNetworkUnavailableError(error)) {
+          Alert.alert(t('common.siparisler'), getApiErrorMessage(error, t('errors.network')));
+        }
       }
     };
 

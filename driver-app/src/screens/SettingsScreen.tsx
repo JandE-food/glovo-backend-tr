@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
 import { Alert, Image, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import * as FileSystem from 'expo-file-system';
-import * as ImagePicker from 'expo-image-picker';
 
 import { LanguageSwitch } from '../components/LanguageSwitch';
 import { PrimaryButton } from '../components/PrimaryButton';
 import { ScreenContainer } from '../components/ScreenContainer';
 import { useDriverStore } from '../store/useDriverStore';
 import { colors } from '../theme/colors';
+import {
+  pickProfilePhotoFromCamera,
+  pickProfilePhotoFromLibrary
+} from '../utils/profilePhoto';
 
 export const SettingsScreen = () => {
   const { t } = useTranslation();
@@ -23,67 +25,40 @@ export const SettingsScreen = () => {
   const [editablePhone, setEditablePhone] = useState(driverPhone);
   const [editableImageUrl, setEditableImageUrl] = useState(profileImageUrl);
 
-  const persistImage = async (uri: string) => {
-    const fileExtensionMatch = uri.match(/\.(\w+)(\?.*)?$/);
-    const extension = fileExtensionMatch?.[1] ? `.${fileExtensionMatch[1]}` : '.jpg';
-    const destination = `${FileSystem.documentDirectory ?? ''}cabuk_driver_avatar_${Date.now()}${extension}`;
-    await FileSystem.copyAsync({ from: uri, to: destination });
-    return destination;
-  };
-
   const pickFromLibrary = async () => {
-    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permission.granted) {
-      Alert.alert('Profile Photo', 'Photo library permission is required to upload a profile photo.');
+    try {
+      const persistedUri = await pickProfilePhotoFromLibrary();
+      if (!persistedUri) {
+        return;
+      }
+
+      setEditableImageUrl(persistedUri);
+      updateProfile({ profileImageUrl: persistedUri });
+    } catch (error) {
+      Alert.alert(
+        'Profile Photo',
+        error instanceof Error ? error.message : 'Photo upload failed.'
+      );
       return;
     }
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.8
-    });
-
-    if (result.canceled) {
-      return;
-    }
-
-    const uri = result.assets?.[0]?.uri;
-    if (!uri) {
-      return;
-    }
-
-    const persistedUri = await persistImage(uri);
-    setEditableImageUrl(persistedUri);
-    updateProfile({ profileImageUrl: persistedUri });
   };
 
   const pickFromCamera = async () => {
-    const permission = await ImagePicker.requestCameraPermissionsAsync();
-    if (!permission.granted) {
-      Alert.alert('Profile Photo', 'Camera permission is required to take a profile photo.');
+    try {
+      const persistedUri = await pickProfilePhotoFromCamera();
+      if (!persistedUri) {
+        return;
+      }
+
+      setEditableImageUrl(persistedUri);
+      updateProfile({ profileImageUrl: persistedUri });
+    } catch (error) {
+      Alert.alert(
+        'Profile Photo',
+        error instanceof Error ? error.message : 'Camera capture failed.'
+      );
       return;
     }
-
-    const result = await ImagePicker.launchCameraAsync({
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.8
-    });
-
-    if (result.canceled) {
-      return;
-    }
-
-    const uri = result.assets?.[0]?.uri;
-    if (!uri) {
-      return;
-    }
-
-    const persistedUri = await persistImage(uri);
-    setEditableImageUrl(persistedUri);
-    updateProfile({ profileImageUrl: persistedUri });
   };
 
   const openPhotoPicker = () => {

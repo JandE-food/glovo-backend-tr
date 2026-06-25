@@ -2,20 +2,24 @@ import React, { useState } from 'react';
 import { Alert, Image, StyleSheet, Text, TextInput, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useTranslation } from 'react-i18next';
-import * as FileSystem from 'expo-file-system';
-import * as ImagePicker from 'expo-image-picker';
 import { isAxiosError } from 'axios';
 
 import { PrimaryButton } from '../components/PrimaryButton';
 import { ScreenContainer } from '../components/ScreenContainer';
 import { driverSignup } from '../services/api';
+import { useDriverStore } from '../store/useDriverStore';
 import { colors } from '../theme/colors';
 import type { RootStackParamList } from '../types/navigation';
+import {
+  pickProfilePhotoFromCamera,
+  pickProfilePhotoFromLibrary
+} from '../utils/profilePhoto';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Signup'>;
 
 export const SignupScreen = ({ navigation }: Props) => {
   const { t } = useTranslation();
+  const signUp = useDriverStore((state) => state.signUp);
   const [driverName, setDriverName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -23,65 +27,32 @@ export const SignupScreen = ({ navigation }: Props) => {
   const [profileImageUrl, setProfileImageUrl] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const persistImage = async (uri: string) => {
-    const fileExtensionMatch = uri.match(/\.(\w+)(\?.*)?$/);
-    const extension = fileExtensionMatch?.[1] ? `.${fileExtensionMatch[1]}` : '.jpg';
-    const destination = `${FileSystem.documentDirectory ?? ''}cabuk_driver_avatar_${Date.now()}${extension}`;
-    await FileSystem.copyAsync({ from: uri, to: destination });
-    return destination;
-  };
-
   const pickFromLibrary = async () => {
-    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permission.granted) {
-      Alert.alert('Signup', 'Photo library permission is required to upload a profile photo.');
+    try {
+      const persistedUri = await pickProfilePhotoFromLibrary();
+      if (!persistedUri) {
+        return;
+      }
+
+      setProfileImageUrl(persistedUri);
+    } catch (error) {
+      Alert.alert('Signup', error instanceof Error ? error.message : 'Photo upload failed.');
       return;
     }
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.8
-    });
-
-    if (result.canceled) {
-      return;
-    }
-
-    const uri = result.assets?.[0]?.uri;
-    if (!uri) {
-      return;
-    }
-
-    const persistedUri = await persistImage(uri);
-    setProfileImageUrl(persistedUri);
   };
 
   const pickFromCamera = async () => {
-    const permission = await ImagePicker.requestCameraPermissionsAsync();
-    if (!permission.granted) {
-      Alert.alert('Signup', 'Camera permission is required to take a profile photo.');
+    try {
+      const persistedUri = await pickProfilePhotoFromCamera();
+      if (!persistedUri) {
+        return;
+      }
+
+      setProfileImageUrl(persistedUri);
+    } catch (error) {
+      Alert.alert('Signup', error instanceof Error ? error.message : 'Camera capture failed.');
       return;
     }
-
-    const result = await ImagePicker.launchCameraAsync({
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.8
-    });
-
-    if (result.canceled) {
-      return;
-    }
-
-    const uri = result.assets?.[0]?.uri;
-    if (!uri) {
-      return;
-    }
-
-    const persistedUri = await persistImage(uri);
-    setProfileImageUrl(persistedUri);
   };
 
   const handleSignup = async () => {
@@ -103,8 +74,13 @@ export const SignupScreen = ({ navigation }: Props) => {
         phone
       });
 
-      Alert.alert('Signup', 'Your account has been created. Please sign in.');
-      navigation.navigate('Login');
+      signUp({
+        driverName: driverName,
+        driverPhone: phone,
+        driverCode,
+        profileImageUrl
+      });
+      Alert.alert('Signup', 'Your account has been created.');
     } catch (error) {
       if (isAxiosError(error) && error.response?.status === 409) {
         Alert.alert('Signup', 'You already have an account.', [

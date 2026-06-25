@@ -10,6 +10,7 @@ import { getOrderStatusLabel, StatusBadge } from '../components/StatusBadge';
 import {
   getApiErrorMessage,
   getOrders,
+  isNetworkUnavailableError,
   listenOrderUpdates
 } from '../services/api';
 import { useAppStore } from '../store/useAppStore';
@@ -48,7 +49,10 @@ export const OrdersScreen = (_props: Props) => {
         }
 
         setOrders(localOrders);
-        Alert.alert(t('common.siparisler'), getApiErrorMessage(error, t('errors.network')));
+
+        if (!isNetworkUnavailableError(error)) {
+          Alert.alert(t('common.siparisler'), getApiErrorMessage(error, t('errors.network')));
+        }
       }
     };
 

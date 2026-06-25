@@ -1,4 +1,5 @@
 import axios, { isAxiosError } from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { io } from 'socket.io-client';
 
 import type {
@@ -14,6 +15,7 @@ import type {
 
 export const API_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://135.125.184.123:3000';
 export const DEFAULT_USER_ID = 'user-1';
+const LOCAL_ADDRESSES_STORAGE_KEY_PREFIX = 'cabuk-customer-addresses';
 
 type AuthResponse = {
   message?: string;
@@ -196,6 +198,73 @@ const orderStatusMap: Record<string, OrderStatus> = {
 
 const normalizeId = (value: unknown, fallback: string) =>
   typeof value === 'string' && value.length > 0 ? value : fallback;
+
+const getLocalAddressesStorageKey = (userId: string) =>
+  `${LOCAL_ADDRESSES_STORAGE_KEY_PREFIX}:${userId || DEFAULT_USER_ID}`;
+
+const normalizeLocalAddress = (address: Partial<Address>): Address => ({
+  id: normalizeId(address.id, `address-${Date.now()}`),
+  userId: address.userId ?? DEFAULT_USER_ID,
+  mahalle: address.mahalle ?? '',
+  ilce: address.ilce ?? address.mahalle ?? '',
+  il: address.il ?? 'Tirane',
+  sokak: address.sokak ?? '',
+  apartmanNo: address.apartmanNo ?? '',
+  kat: address.kat ?? '',
+  daire: address.daire ?? '',
+  postaKodu: address.postaKodu ?? '',
+  isDefault: Boolean(address.isDefault)
+});
+
+const readLocalAddresses = async (userId: string) => {
+  const rawValue = await AsyncStorage.getItem(getLocalAddressesStorageKey(userId));
+  if (!rawValue) {
+    return [] as Address[];
+  }
+
+  try {
+    const parsed = JSON.parse(rawValue) as Partial<Address>[];
+    return Array.isArray(parsed) ? parsed.map(normalizeLocalAddress) : [];
+  } catch {
+    return [];
+  }
+};
+
+const writeLocalAddresses = async (userId: string, addresses: Address[]) => {
+  await AsyncStorage.setItem(
+    getLocalAddressesStorageKey(userId),
+    JSON.stringify(addresses.map(normalizeLocalAddress))
+  );
+};
+
+const mergeAddresses = (primaryAddresses: Address[], secondaryAddresses: Address[]) => {
+  const merged = [...primaryAddresses];
+
+  for (const address of secondaryAddresses) {
+    if (!merged.some((entry) => entry.id === address.id)) {
+      merged.push(address);
+    }
+  }
+
+  return merged;
+};
+
+export const isNetworkUnavailableError = (error: unknown) => {
+  if (isAxiosError(error)) {
+    return !error.response;
+  }
+
+  if (error instanceof Error) {
+    const message = error.message.toLocaleLowerCase('en-US');
+    return (
+      message.includes('network') ||
+      message.includes('timeout') ||
+      message.includes('unable to connect')
+    );
+  }
+
+  return false;
+};
 
 const mapRestaurantCategory = (value?: string): Restaurant['category'] => {
   const normalized = value?.toLocaleLowerCase('en-US').replace(/\s+/g, '') ?? '';
@@ -387,17 +456,143 @@ export const getOrders = async (userId: string) => {
 };
 
 export const saveAddress = async (address: AddressPayload) => {
-  const response = await api.post<{ address: AddressApiRecord }>('/addresses', address);
+  try {
+    const response = await api.post<{ address: AddressApiRecord }>('/addresses', address);
+    const nextAddress = mapAddress(response.data.address);
+    const cachedAddresses = await readLocalAddresses(nextAddress.userId ?? address.userId);
+    const nextAddresses = [
+      nextAddress,
+      ...cachedAddresses
+        .filter((entry) => entry.id !== nextAddress.id)
+        .map((entry) => (nextAddress.isDefault ? { ...entry, isDefault: false } : entry))
+    ];
+    await writeLocalAddresses(nextAddress.userId ?? address.userId, nextAddresses);
+    return nextAddress;
+  } catch (error) {
+    if (!isNetworkUnavailableError(error)) {
+      throw error;
+    }
 
-  return mapAddress(response.data.address);
+    const userId = address.userId || DEFAULT_USER_ID;
+    const cachedAddresses = await readLocalAddresses(userId);
+    const nextAddress = normalizeLocalAddress({
+      id: `local-address-${Date.now()}`,
+      userId,
+      mahalle: address.mahalle,
+      ilce: address.mahalle,
+      il: 'Tirane',
+      sokak: address.sokak,
+      apartmanNo: address.apartmanNo,
+      kat: address.kat,
+      daire: address.daire,
+      postaKodu: address.postaKodu,
+      isDefault: address.isDefault
+    });
+    const nextAddresses = [
+      nextAddress,
+      ...cachedAddresses
+        .filter((entry) => entry.id !== nextAddress.id)
+        .map((entry) => (nextAddress.isDefault ? { ...entry, isDefault: false } : entry))
+    ];
+    await writeLocalAddresses(userId, nextAddresses);
+    return nextAddress;
+  }
 };
 
 export const getAddresses = async (userId: string) => {
-  const response = await api.get<{ addresses: AddressApiRecord[] }>('/addresses', {
-    params: { userId }
-  });
+  try {
+    const response = await api.get<{ addresses: AddressApiRecord[] }>('/addresses', {
+      params: { userId }
+    });
+    const remoteAddresses = (response.data.addresses ?? []).map(mapAddress);
+    const cachedAddresses = await readLocalAddresses(userId);
+    const nextAddresses = mergeAddresses(remoteAddresses, cachedAddresses);
+    await writeLocalAddresses(userId, nextAddresses);
+    return nextAddresses;
+  } catch (error) {
+    if (!isNetworkUnavailableError(error)) {
+      throw error;
+    }
 
-  return (response.data.addresses ?? []).map(mapAddress);
+    return readLocalAddresses(userId);
+  }
+};
+
+export const updateSavedAddress = async (addressId: string, payload: AddressPayload) => {
+  try {
+    const response = await api.patch<{ address: AddressApiRecord }>(`/addresses/${addressId}`, payload);
+    const updatedAddress = mapAddress(response.data.address);
+    const userId = updatedAddress.userId ?? payload.userId ?? DEFAULT_USER_ID;
+    const cachedAddresses = await readLocalAddresses(userId);
+    const nextAddresses = cachedAddresses.map((entry) =>
+      entry.id === updatedAddress.id
+        ? updatedAddress
+        : updatedAddress.isDefault
+          ? { ...entry, isDefault: false }
+          : entry
+    );
+    await writeLocalAddresses(userId, nextAddresses);
+    return updatedAddress;
+  } catch (error) {
+    if (!isNetworkUnavailableError(error)) {
+      throw error;
+    }
+
+    const userId = payload.userId || DEFAULT_USER_ID;
+    const cachedAddresses = await readLocalAddresses(userId);
+    const currentAddress = cachedAddresses.find((entry) => entry.id === addressId);
+
+    if (!currentAddress) {
+      throw error;
+    }
+
+    const updatedAddress = normalizeLocalAddress({
+      ...currentAddress,
+      ...payload,
+      id: addressId,
+      userId,
+      ilce: payload.mahalle,
+      il: 'Tirane'
+    });
+    const nextAddresses = cachedAddresses.map((entry) =>
+      entry.id === addressId
+        ? updatedAddress
+        : updatedAddress.isDefault
+          ? { ...entry, isDefault: false }
+          : entry
+    );
+    await writeLocalAddresses(userId, nextAddresses);
+    return updatedAddress;
+  }
+};
+
+export const deleteSavedAddress = async (addressId: string, userId: string) => {
+  try {
+    await api.delete(`/addresses/${addressId}`, {
+      params: { userId }
+    });
+  } catch (error) {
+    if (!isNetworkUnavailableError(error)) {
+      throw error;
+    }
+  }
+
+  const cachedAddresses = await readLocalAddresses(userId);
+  const deletedAddress = cachedAddresses.find((entry) => entry.id === addressId);
+  let nextAddresses = cachedAddresses.filter((entry) => entry.id !== addressId);
+
+  if (
+    deletedAddress?.isDefault &&
+    nextAddresses.length > 0 &&
+    !nextAddresses.some((entry) => entry.isDefault)
+  ) {
+    nextAddresses = nextAddresses.map((entry, index) => ({
+      ...entry,
+      isDefault: index === 0
+    }));
+  }
+
+  await writeLocalAddresses(userId, nextAddresses);
 };
 
 export const listenOrderUpdates = (

@@ -2,7 +2,13 @@ import { create } from 'zustand';
 
 import i18n from '../i18n';
 import { restaurants } from '../data/mockData';
-import { DEFAULT_USER_ID, api, getAddresses, saveAddress } from '../services/api';
+import {
+  DEFAULT_USER_ID,
+  deleteSavedAddress,
+  getAddresses,
+  saveAddress,
+  updateSavedAddress
+} from '../services/api';
 import { getSelectedAddress, getSelectedAddressId } from '../utils/address';
 import type {
   Address,
@@ -255,8 +261,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     return nextAddress;
   },
   updateAddress: async (addressId, payload) => {
-    const response = await api.patch<{ address: Address }>(`/addresses/${addressId}`, payload);
-    const updatedAddress = response.data.address;
+    const updatedAddress = await updateSavedAddress(addressId, payload);
 
     set((state) => ({
       addresses: state.addresses.map((address) => {
@@ -277,9 +282,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   deleteAddress: async (addressId) => {
     const userId = get().currentUserId;
 
-    await api.delete(`/addresses/${addressId}`, {
-      params: { userId }
-    });
+    await deleteSavedAddress(addressId, userId);
 
     set((state) => {
       const deletedAddress = state.addresses.find((address) => address.id === addressId);
@@ -319,7 +322,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       return;
     }
 
-    const response = await api.patch<{ address: Address }>(`/addresses/${addressId}`, {
+    const updatedAddress = await updateSavedAddress(addressId, {
       userId: currentAddress.userId ?? get().currentUserId,
       mahalle: currentAddress.mahalle,
       sokak: currentAddress.sokak,
@@ -329,8 +332,6 @@ export const useAppStore = create<AppState>((set, get) => ({
       postaKodu: currentAddress.postaKodu,
       isDefault: true
     });
-
-    const updatedAddress = response.data.address;
 
     set((state) => ({
       addresses: state.addresses.map((address) =>

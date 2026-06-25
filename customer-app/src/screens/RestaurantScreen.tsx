@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { MenuItemCard } from '../components/MenuItemCard';
 import { ScreenContainer } from '../components/ScreenContainer';
 import { getMenuByRestaurantId, getRestaurantById } from '../data/mockData';
-import { getApiErrorMessage, getRestaurant } from '../services/api';
+import { getApiErrorMessage, getRestaurant, isNetworkUnavailableError } from '../services/api';
 import { calculateCartTotal, useAppStore } from '../store/useAppStore';
 import { colors } from '../theme/colors';
 import type { MenuItem, Restaurant } from '../types/models';
@@ -28,7 +28,7 @@ export const RestaurantScreen = ({ route, navigation }: Props) => {
   const cartItems = useAppStore((state) => state.cartItems);
 
   const openCart = () => {
-    navigation.navigate('MainTabs' as never, { screen: 'CartTab' } as never);
+    navigation.navigate('MainTabs');
   };
 
   const showCartPopup = () => {
@@ -71,7 +71,10 @@ export const RestaurantScreen = ({ route, navigation }: Props) => {
 
         setRestaurant(getRestaurantById(restaurantId));
         setMenuItems(getMenuByRestaurantId(restaurantId));
-        Alert.alert(t('menu.baslik'), getApiErrorMessage(error, t('errors.network')));
+
+        if (!isNetworkUnavailableError(error)) {
+          Alert.alert(t('menu.baslik'), getApiErrorMessage(error, t('errors.network')));
+        }
       }
     };
 
