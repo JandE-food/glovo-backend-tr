@@ -39,7 +39,7 @@ export const SignupScreen = ({ navigation }: Props) => {
     }
 
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ['images'],
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.8
@@ -108,6 +108,16 @@ export const SignupScreen = ({ navigation }: Props) => {
     } catch (error) {
       if (isAxiosError(error) && error.response?.status === 409) {
         Alert.alert('Signup', 'You already have an account.', [
+          {
+            text: 'Sign In',
+            onPress: () => navigation.navigate('Login')
+          }
+        ]);
+        return;
+      }
+
+      if (error instanceof Error && error.message === 'You already have an account.') {
+        Alert.alert('Signup', error.message, [
           {
             text: 'Sign In',
             onPress: () => navigation.navigate('Login')

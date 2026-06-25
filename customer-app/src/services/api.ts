@@ -12,7 +12,7 @@ import type {
   Restaurant
 } from '../types/models';
 
-export const API_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000';
+export const API_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://135.125.184.123:3000';
 export const DEFAULT_USER_ID = 'user-1';
 
 type AuthResponse = {
@@ -149,7 +149,9 @@ export const api = axios.create({
   baseURL: API_URL,
   timeout: 8000
 });
-export const socket = io(API_URL);
+export const socket = io(API_URL, {
+  transports: ['websocket']
+});
 
 let joinedCustomerRoomUserId: string | null = null;
 let joinedOrderRoomId: string | null = null;
@@ -293,6 +295,10 @@ export const getApiErrorMessage = (
     if (typeof responseData?.message === 'string') {
       return responseData.message;
     }
+  }
+
+  if (error instanceof Error && error.message.trim().length > 0) {
+    return error.message;
   }
 
   return fallbackMessage;

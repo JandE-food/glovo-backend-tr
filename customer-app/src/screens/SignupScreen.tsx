@@ -42,6 +42,16 @@ export const SignupScreen = ({ navigation }: Props) => {
         return;
       }
 
+      if (error instanceof Error && error.message === 'You already have an account.') {
+        Alert.alert(t('common.kayitOl'), error.message, [
+          {
+            text: t('common.girisYap'),
+            onPress: () => navigation.replace('Login')
+          }
+        ]);
+        return;
+      }
+
       Alert.alert(t('common.kayitOl'), getApiErrorMessage(error, t('errors.network')));
     } finally {
       setIsSubmitting(false);

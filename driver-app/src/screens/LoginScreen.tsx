@@ -97,6 +97,10 @@ export const LoginScreen = ({ navigation }: Props) => {
                     Alert.alert('Sign In', 'Invalid credentials.');
                     return;
                   }
+                  if (error instanceof Error && error.message === 'Invalid credentials.') {
+                    Alert.alert('Sign In', error.message);
+                    return;
+                  }
                   Alert.alert('Sign In', 'Network error');
                 })
                 .finally(() => setIsSubmitting(false));

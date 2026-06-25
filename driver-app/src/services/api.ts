@@ -4,7 +4,7 @@ import * as Location from 'expo-location';
 import { connectDriverSocket } from './socket';
 import type { DriverJob, DriverJobStatus } from '../types/models';
 
-export const API_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000';
+export const API_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://135.125.184.123:3000';
 
 export const api = axios.create({
   baseURL: API_URL,
@@ -12,6 +12,7 @@ export const api = axios.create({
 });
 
 type AuthResponse = {
+  message?: string;
   token?: string;
   user?: {
     id?: string;

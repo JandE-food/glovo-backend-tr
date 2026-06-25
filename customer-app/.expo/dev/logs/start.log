@@ -721,3 +721,9 @@
 {"_e":"metro:client_log","_t":1782304784725,"level":"warn","data":["Image: style.tintColor is deprecated. Please use props.tintColor."]}
 {"_e":"metro:client_log","_t":1782304805771,"level":"warn","data":["Animated: `useNativeDriver` is not supported because the native animated module is missing. Falling back to JS-based animation. To resolve this, add `RCTAnimation` module to this app, or remove `useNativeDriver`. Make sure to run `bundle exec pod install` first. Read more about autolinking: https://github.com/react-native-community/cli/blob/master/docs/autolinking.md"]}
 {"_e":"metro:client_log","_t":1782304812272,"level":"warn","data":["The Geocoding API has been removed in SDK 49, use Place Autocomplete service instead(https://developers.google.com/maps/documentation/places/web-service/autocomplete)"]}
+{"_e":"root:init","_t":1782373122912,"format":"v0-jsonl","version":"56.1.16"}
+{"_e":"env:mode","_t":1782373122914,"nodeEnv":"development","babelEnv":"development","mode":"development"}
+{"_e":"env:load","_t":1782373122922,"mode":"development","files":["../..\\..\\.env.development","../..\\..\\.env"],"env":{"EXPO_PUBLIC_API_URL":"http://135.125.184.123:3000","EXPO_PUBLIC_PAYSTACK_PUBLIC_KEY":"FLWPUBK_TEST-caa3816b2ce155a11344fa550a438ec5-X"}}
+{"_e":"devserver:start","_t":1782373124039,"mode":"development","web":true,"baseUrl":"","asyncRoutes":false,"routerRoot":"../..\\..\\app","serverComponents":false,"serverActions":false,"serverRendering":false,"apiRoutes":false,"exporting":false}
+{"_e":"metro:config","_t":1782373125346,"serverRoot":"../..\\..","projectRoot":"../..\\..","exporting":false,"flags":{"autolinkingModuleResolution":false,"serverActions":false,"serverComponents":false,"reactCompiler":false,"optimizeGraph":false,"treeshaking":false,"logbox":false}}
+{"_e":"metro:instantiate","_t":1782373143377,"atlas":false,"workers":8,"host":"::","port":8081}

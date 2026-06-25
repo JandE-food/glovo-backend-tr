@@ -3,6 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import * as Location from 'expo-location';
 import MapView, { Marker, Polyline } from '../components/MapWrapper';
 
 import { FilterChip } from '../components/FilterChip';
@@ -12,9 +13,15 @@ import { SelectField } from '../components/SelectField';
 import { neighborhoodOptions, radiusOptions } from '../data/mockData';
 import { useDriverStore } from '../store/useDriverStore';
 import { colors } from '../theme/colors';
+import type { Coordinates } from '../types/models';
 import type { RootStackParamList } from '../types/navigation';
 
 const getRadiusValue = (radius: string) => Number(radius.replace('km', ''));
+
+const fallbackDriverLocation: Coordinates = {
+  latitude: 41.3275,
+  longitude: 19.8187
+};
 
 export const JobsDashboard = () => {
   const { t } = useTranslation();
@@ -26,10 +33,51 @@ export const JobsDashboard = () => {
   const [radius, setRadius] = useState<(typeof radiusOptions)[number]>('5km');
   const [neighborhood, setNeighborhood] = useState('');
   const [isNeighborhoodOpen, setNeighborhoodOpen] = useState(false);
+  const [driverLocation, setDriverLocation] = useState<Coordinates>(fallbackDriverLocation);
 
   useEffect(() => {
     void refreshJobs();
   }, [refreshJobs]);
+
+  useEffect(() => {
+    let subscription: Location.LocationSubscription | undefined;
+
+    const startTrackingLocation = async () => {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        return;
+      }
+
+      const currentPosition = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Balanced
+      });
+
+      setDriverLocation({
+        latitude: currentPosition.coords.latitude,
+        longitude: currentPosition.coords.longitude
+      });
+
+      subscription = await Location.watchPositionAsync(
+        {
+          accuracy: Location.Accuracy.Balanced,
+          distanceInterval: 25,
+          timeInterval: 5000
+        },
+        (position) => {
+          setDriverLocation({
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude
+          });
+        }
+      );
+    };
+
+    void startTrackingLocation();
+
+    return () => {
+      subscription?.remove();
+    };
+  }, []);
 
   const filteredJobs = useMemo(
     () =>
@@ -46,25 +94,33 @@ export const JobsDashboard = () => {
       return [];
     }
 
-    return [featuredJob.restaurantLocation, featuredJob.customerLocation];
-  }, [featuredJob]);
+    return [driverLocation, featuredJob.restaurantLocation, featuredJob.customerLocation];
+  }, [driverLocation, featuredJob]);
   const initialRegion = useMemo(() => {
     if (!featuredJob) {
       return {
-        latitude: 41.3275,
-        longitude: 19.8187,
+        latitude: driverLocation.latitude,
+        longitude: driverLocation.longitude,
         latitudeDelta: 0.08,
         longitudeDelta: 0.08
       };
     }
 
     return {
-      latitude: (featuredJob.restaurantLocation.latitude + featuredJob.customerLocation.latitude) / 2,
-      longitude: (featuredJob.restaurantLocation.longitude + featuredJob.customerLocation.longitude) / 2,
+      latitude:
+        (driverLocation.latitude +
+          featuredJob.restaurantLocation.latitude +
+          featuredJob.customerLocation.latitude) /
+        3,
+      longitude:
+        (driverLocation.longitude +
+          featuredJob.restaurantLocation.longitude +
+          featuredJob.customerLocation.longitude) /
+        3,
       latitudeDelta: 0.08,
       longitudeDelta: 0.08
     };
-  }, [featuredJob]);
+  }, [driverLocation.latitude, driverLocation.longitude, featuredJob]);
 
   return (
     <ScreenContainer>
@@ -80,14 +136,23 @@ export const JobsDashboard = () => {
       </View>
 
       <View style={styles.mapStage}>
-        <MapView style={styles.map} initialRegion={initialRegion} scrollEnabled={false}>
+        <MapView
+          style={styles.map}
+          initialRegion={initialRegion}
+          region={initialRegion}
+          showsUserLocation
+          showsMyLocationButton
+        >
           {featuredJob ? (
             <>
+              <Marker coordinate={driverLocation} title="Your current location" pinColor={colors.dark} />
               <Marker coordinate={featuredJob.restaurantLocation} title={featuredJob.restaurantName} />
               <Marker coordinate={featuredJob.customerLocation} title={featuredJob.customerName} />
               <Polyline coordinates={mapCoordinates} strokeColor={colors.primary} strokeWidth={4} />
             </>
-          ) : null}
+          ) : (
+            <Marker coordinate={driverLocation} title="Your current location" pinColor={colors.dark} />
+          )}
         </MapView>
         <View style={styles.mapOverlay}>
           <Text style={styles.mapOverlayLabel}>{t('jobs.socketStatus')}</Text>
@@ -101,7 +166,9 @@ export const JobsDashboard = () => {
               <Text style={styles.mapOverlayAddress}>{featuredJob.address}</Text>
             </>
           ) : (
-            <Text style={styles.mapOverlayAddress}>{t('jobs.subtitle')}</Text>
+            <Text style={styles.mapOverlayAddress}>
+              Live map centered on your current location.
+            </Text>
           )}
         </View>
       </View>

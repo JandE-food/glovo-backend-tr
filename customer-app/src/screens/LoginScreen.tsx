@@ -37,6 +37,11 @@ export const LoginScreen = ({ navigation }: Props) => {
       Alert.alert(t('common.girisYap'), t('auth.girisBasarili'));
       navigation.replace('MainTabs');
     } catch (error) {
+      if (error instanceof Error && error.message === 'Invalid credentials') {
+        Alert.alert(t('common.girisYap'), t('errors.invalidCredentials'));
+        return;
+      }
+
       Alert.alert(
         t('common.girisYap'),
         getApiErrorMessage(error, t('errors.network'), {

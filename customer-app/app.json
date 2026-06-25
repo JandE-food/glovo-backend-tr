@@ -23,6 +23,7 @@
       "adaptiveIcon": {
         "backgroundColor": "#F4F8F1"
       },
+      "usesCleartextTraffic": true,
       "permissions": [
         "ACCESS_COARSE_LOCATION",
         "ACCESS_FINE_LOCATION",

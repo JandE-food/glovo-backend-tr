@@ -134,27 +134,22 @@ export const girisYap = async (email: string, password: string) => {
     throw new Error(t.misc.emailAndPasswordRequired);
   }
 
-  try {
-    const response = await fetch(`${API_URL}/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password })
-    });
+  const response = await fetch(`${API_URL}/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password })
+  });
 
-    // Keep demo login usable if the merchant auth endpoint is not deployed yet.
-    if (response.status === 404 || response.status >= 500) {
-      return;
+  if (!response.ok) {
+    let message = t.login.loginFailed;
+    try {
+      const data = (await response.json()) as { message?: string };
+      if (typeof data?.message === 'string') {
+        message = data.message;
+      }
+    } catch {
     }
-
-    if (!response.ok) {
-      throw new Error(t.login.loginFailed);
-    }
-  } catch (error) {
-    if (error instanceof Error && error.message === t.login.loginFailed) {
-      throw error;
-    }
-
-    // Network failures should not block local dashboard demo access.
+    throw new Error(message);
   }
 };
 
