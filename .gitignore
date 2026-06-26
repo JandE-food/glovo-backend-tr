@@ -14,9 +14,11 @@ backend/.env.development
 driver-app/.expo/
 driver-app/*.log
 # Local Environment Variables
-backend/.env
+# backend/.env
 **/.env
 **/.env.local
+
+
 
 # Dependency folders
 node_modules/

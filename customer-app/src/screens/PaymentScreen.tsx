@@ -69,7 +69,13 @@ export const PaymentScreen = ({ navigation }: Props) => {
 
       try {
         const params = parseQueryParams(url);
+        const status = (params.status ?? params.payment_status ?? '').toLowerCase();
         const txRef = params.tx_ref ?? params.txRef ?? pendingTxRefRef.current;
+
+        if (status && status !== 'successful') {
+          Alert.alert(t('common.ode'), `Error: Payment ${status}`);
+          return;
+        }
 
         if (!txRef) {
           Alert.alert(t('common.ode'), t('errors.network'));
@@ -201,6 +207,18 @@ export const PaymentScreen = ({ navigation }: Props) => {
         ) : null}
       </View>
 
+      {__DEV__ ? (
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Flutterwave Test Cards</Text>
+          <Text style={styles.testLine}>Successful (Mastercard): 5531886652142950</Text>
+          <Text style={styles.testLine}>Expiry: 09/32 • CVV: 564 • PIN: 3310 • OTP: 12345</Text>
+          <Text style={styles.testLine}>Failed (Insufficient funds): 5258585922666506</Text>
+          <Text style={styles.testLine}>Expiry: 09/31 • CVV: 883 • PIN: 3310 • OTP: 12345</Text>
+          <Text style={styles.testLine}>Failed (Fraudulent): 5590131743294314</Text>
+          <Text style={styles.testLine}>Expiry: 11/32 • CVV: 887 • PIN: 3310 • OTP: 12345</Text>
+        </View>
+      ) : null}
+
       <PrimaryButton
         label={isPaying ? t('cart.odemeIsleniyor') : t('common.ode')}
         onPress={() => {
@@ -247,5 +265,9 @@ const styles = StyleSheet.create({
   address: {
     color: colors.text,
     lineHeight: 22,
+  },
+  testLine: {
+    color: colors.textMuted,
+    lineHeight: 20,
   },
 });

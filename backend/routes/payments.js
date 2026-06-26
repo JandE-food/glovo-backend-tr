@@ -25,6 +25,15 @@ const getFlutterwaveSecretKey = () => {
   return key;
 };
 
+const getFlutterwaveBaseUrl = () => {
+  const baseUrl = process.env.PAYSTACK_BASE_URL;
+  if (baseUrl && String(baseUrl).trim().length > 0) {
+    return String(baseUrl).replace(/\/+$/, '');
+  }
+
+  return 'https://api.flutterwave.com';
+};
+
 const mapGatewayCurrency = (currency) => {
   const normalized = String(currency ?? '').toUpperCase();
   return normalized === 'ALL' ? 'USD' : normalized;
@@ -56,6 +65,7 @@ const validateVerifyPayload = (payload) => {
 
 const createHostedCheckout = async (payload) => {
   const secretKey = getFlutterwaveSecretKey();
+  const baseUrl = getFlutterwaveBaseUrl();
   validateInitPayload(payload);
 
   const baseAmount = payload.amount;
@@ -64,7 +74,7 @@ const createHostedCheckout = async (payload) => {
   const currency = mapGatewayCurrency(payload.currency ?? 'ALL');
   const redirectUrl = String(payload.redirectUrl ?? 'cabuk://checkout');
 
-  const response = await fetch('https://api.flutterwave.com/v3/payments', {
+  const response = await fetch(`${baseUrl}/v3/payments`, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${secretKey}`,
@@ -104,8 +114,9 @@ const createHostedCheckout = async (payload) => {
 
 const verifyHostedCheckout = async (txRef) => {
   const secretKey = getFlutterwaveSecretKey();
+  const baseUrl = getFlutterwaveBaseUrl();
   const response = await fetch(
-    `https://api.flutterwave.com/v3/transactions/verify_by_reference?tx_ref=${encodeURIComponent(txRef)}`,
+    `${baseUrl}/v3/transactions/verify_by_reference?tx_ref=${encodeURIComponent(txRef)}`,
     {
       method: 'GET',
       headers: {

@@ -92,7 +92,21 @@ router.get('/:restaurantId', async (request, response) => {
   const { restaurantId } = request.params;
 
   if (mongoose.connection.readyState === 1) {
-    const restoran = await Restaurant.findById(restaurantId).lean();
+    // Check if restaurantId looks like a fallback ID (starts with 'r' or 'm')
+    // If it does, we can't use findById() as it's not a valid ObjectId
+    const isFallbackId = /^[rm]\d+$/.test(restaurantId);
+    
+    let restoran;
+    if (isFallbackId) {
+      // For fallback IDs, return 404 since they don't exist in MongoDB
+      response.status(404).json({
+        message: 'Restaurant not found'
+      });
+      return;
+    } else {
+      // Try to find by ObjectId
+      restoran = await Restaurant.findById(restaurantId).lean();
+    }
 
     if (!restoran) {
       response.status(404).json({
