@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 
 const Order = require('../models/Order.js');
+const { isFallbackId } = require('../utils/idHelpers.js');
 
 const router = express.Router();
 
@@ -117,6 +118,14 @@ router.patch('/:orderId/status', async (request, response) => {
   }
 
   if (mongoose.connection.readyState === 1) {
+    // Check if orderId is a fallback ID
+    if (isFallbackId(orderId)) {
+      response.status(404).json({
+        message: 'Order not found'
+      });
+      return;
+    }
+
     const order = await Order.findByIdAndUpdate(
       orderId,
       { status: nextStatus },

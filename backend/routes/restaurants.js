@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 
 const Restaurant = require('../models/Restaurant.js');
+const { isFallbackId } = require('../utils/idHelpers.js');
 
 const router = express.Router();
 
@@ -92,21 +93,18 @@ router.get('/:restaurantId', async (request, response) => {
   const { restaurantId } = request.params;
 
   if (mongoose.connection.readyState === 1) {
-    // Check if restaurantId looks like a fallback ID (starts with 'r' or 'm')
-    // If it does, we can't use findById() as it's not a valid ObjectId
-    const isFallbackId = /^[rm]\d+$/.test(restaurantId);
-    
-    let restoran;
-    if (isFallbackId) {
+    // Check if restaurantId is a fallback ID
+    // If it is, we can't use findById() as it's not a valid ObjectId
+    if (isFallbackId(restaurantId)) {
       // For fallback IDs, return 404 since they don't exist in MongoDB
       response.status(404).json({
         message: 'Restaurant not found'
       });
       return;
-    } else {
-      // Try to find by ObjectId
-      restoran = await Restaurant.findById(restaurantId).lean();
     }
+    
+    // Try to find by ObjectId
+    const restoran = await Restaurant.findById(restaurantId).lean();
 
     if (!restoran) {
       response.status(404).json({

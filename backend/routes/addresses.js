@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 
 const Address = require('../models/Address.js');
+const { isFallbackId } = require('../utils/idHelpers.js');
 
 const router = express.Router();
 
@@ -121,6 +122,12 @@ router.patch('/:addressId', async (request, response) => {
   }
 
   if (mongoose.connection.readyState === 1) {
+    // Check if addressId is a fallback ID
+    if (isFallbackId(addressId)) {
+      response.status(404).json({ message: 'Address not found' });
+      return;
+    }
+
     const mevcutAdres = await Address.findById(addressId);
 
     if (!mevcutAdres) {

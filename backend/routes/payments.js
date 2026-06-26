@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 
 const Order = require('../models/Order.js');
 const ordersRouter = require('./orders.js');
+const { isFallbackId } = require('../utils/idHelpers.js');
 
 const router = express.Router();
 
@@ -137,6 +138,11 @@ const verifyHostedCheckout = async (txRef) => {
 
 const markOrderPaid = async (orderId, paymentIntentId, io) => {
   if (mongoose.connection.readyState === 1) {
+    // Check if orderId is a fallback ID
+    if (isFallbackId(orderId)) {
+      throw new Error('Order not found');
+    }
+
     const updatedOrder = await Order.findByIdAndUpdate(
       orderId,
       {
