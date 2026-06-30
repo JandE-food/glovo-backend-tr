@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { PrimaryButton } from './PrimaryButton';
 import { colors } from '../theme/colors';
 import type { DriverJob } from '../types/models';
+import { formatCurrency } from '../utils/format';
 
 type JobCardProps = {
   job: DriverJob;
@@ -27,7 +28,7 @@ export const JobCard = ({ job, onRoutePress, onAcceptPress }: JobCardProps) => {
         </View>
       </View>
 
-      <Text style={styles.payout}>ALL {job.payout}</Text>
+      <Text style={styles.payout}>{formatCurrency(job.payout)}</Text>
       <Text style={styles.tripMeta}>
         {etaMinutes} min • {t('jobs.distanceAway', { distance: job.distanceKm })}
       </Text>

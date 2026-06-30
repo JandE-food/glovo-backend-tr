@@ -1,4 +1,6 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
+import { createJSONStorage, persist } from 'zustand/middleware';
 
 import i18n from '../i18n';
 import { restaurants } from '../data/mockData';
@@ -9,7 +11,7 @@ import {
   saveAddress,
   updateSavedAddress
 } from '../services/api';
-import { getSelectedAddress, getSelectedAddressId } from '../utils/address';
+import { getAddressCoordinates, getSelectedAddress, getSelectedAddressId } from '../utils/address';
 import type {
   Address,
   AddressPayload,
@@ -24,6 +26,8 @@ export const calculateCartTotal = (items: CartItem[]) =>
   items.reduce((total, item) => total + item.price * item.quantity, 0);
 
 type AppState = {
+  hasHydrated: boolean;
+  isAuthenticated: boolean;
   cartItems: CartItem[];
   activeRestaurantId: string | null;
   orders: Order[];
@@ -41,6 +45,7 @@ type AppState = {
   setCartItemQuantity: (itemId: string, restaurantId: string, quantity: number) => void;
   clearCart: () => void;
   setSession: (payload: { userId?: string; email?: string }) => void;
+  clearSession: () => void;
   setLanguage: (language: AppLanguage) => Promise<void>;
   checkout: (payment?: {
     paymentMethod: PaymentMethod;
@@ -54,6 +59,7 @@ type AppState = {
   deleteAddress: (addressId: string) => Promise<void>;
   selectAddress: (addressId: string) => void;
   setDefaultAddress: (addressId: string) => Promise<void>;
+  setHydrated: (hydrated: boolean) => void;
 };
 
 const resolveUserId = (payload?: { userId?: string; email?: string }) =>
@@ -102,17 +108,21 @@ const initialOrders: Order[] = [
   }
 ];
 
-export const useAppStore = create<AppState>((set, get) => ({
-  cartItems: [],
-  activeRestaurantId: null,
-  orders: initialOrders,
-  addresses: [],
-  selectedAddressId: null,
-  isAddressLoading: false,
-  currentUserId: DEFAULT_USER_ID,
-  currentUserEmail: `${DEFAULT_USER_ID}@cabuk.com`,
-  language: 'sq',
-  addToCart: (item, restaurantId) => {
+export const useAppStore = create<AppState>()(
+  persist(
+    (set, get) => ({
+      hasHydrated: false,
+      isAuthenticated: false,
+      cartItems: [],
+      activeRestaurantId: null,
+      orders: initialOrders,
+      addresses: [],
+      selectedAddressId: null,
+      isAddressLoading: false,
+      currentUserId: DEFAULT_USER_ID,
+      currentUserEmail: `${DEFAULT_USER_ID}@cabuk.com`,
+      language: 'sq',
+      addToCart: (item, restaurantId) => {
     const restaurant = restaurants.find((entry) => entry.id === restaurantId);
     const restaurantNameKey = restaurant?.nameKey ?? restaurants[0].nameKey;
     const currentRestaurantId = get().activeRestaurantId;
@@ -146,8 +156,8 @@ export const useAppStore = create<AppState>((set, get) => ({
     });
 
     return { ok: true };
-  },
-  setCartItemQuantity: (itemId, restaurantId, quantity) => {
+      },
+      setCartItemQuantity: (itemId, restaurantId, quantity) => {
     const nextQuantity = Math.max(0, Math.floor(quantity));
 
     set((state) => {
@@ -165,13 +175,14 @@ export const useAppStore = create<AppState>((set, get) => ({
         activeRestaurantId: nextItems.length === 0 ? null : state.activeRestaurantId ?? restaurantId
       };
     });
-  },
-  clearCart: () => set({ cartItems: [], activeRestaurantId: null }),
-  setSession: ({ userId, email }) => {
+      },
+      clearCart: () => set({ cartItems: [], activeRestaurantId: null }),
+      setSession: ({ userId, email }) => {
     const nextUserId = resolveUserId({ userId, email });
     const nextUserEmail = email && email.length > 0 ? email : `${nextUserId}@cabuk.com`;
 
     set((state) => ({
+      isAuthenticated: true,
       currentUserId: nextUserId,
       currentUserEmail: nextUserEmail,
       cartItems: state.currentUserId === nextUserId ? state.cartItems : [],
@@ -180,12 +191,23 @@ export const useAppStore = create<AppState>((set, get) => ({
       addresses: state.currentUserId === nextUserId ? state.addresses : [],
       selectedAddressId: state.currentUserId === nextUserId ? state.selectedAddressId : null
     }));
-  },
-  setLanguage: async (language) => {
+      },
+      clearSession: () =>
+        set({
+          isAuthenticated: false,
+          cartItems: [],
+          activeRestaurantId: null,
+          orders: [],
+          addresses: [],
+          selectedAddressId: null,
+          currentUserId: DEFAULT_USER_ID,
+          currentUserEmail: `${DEFAULT_USER_ID}@cabuk.com`
+        }),
+      setLanguage: async (language) => {
     await i18n.changeLanguage(language);
     set({ language });
-  },
-  checkout: (payment) => {
+      },
+      checkout: (payment) => {
     const currentItems = get().cartItems;
     const selectedAddress = getSelectedAddress(get().addresses, get().selectedAddressId);
 
@@ -199,6 +221,7 @@ export const useAppStore = create<AppState>((set, get) => ({
 
     const total = calculateCartTotal(currentItems);
     const restaurantNameKey = currentItems[0].restaurantNameKey;
+    const deliveryLocation = getAddressCoordinates(selectedAddress);
 
     set((state) => ({
       cartItems: [],
@@ -212,6 +235,7 @@ export const useAppStore = create<AppState>((set, get) => ({
           status: payment?.status ?? 'received',
           createdAt: 'Just now',
           deliveryAddress: selectedAddress,
+          deliveryLocation,
           paymentMethod: payment?.paymentMethod,
           paymentTransactionId: payment?.transactionId,
           backendOrderId: payment?.backendOrderId
@@ -220,8 +244,8 @@ export const useAppStore = create<AppState>((set, get) => ({
       ]
     }));
     return true;
-  },
-  fetchAddresses: async () => {
+      },
+      fetchAddresses: async () => {
     set({ isAddressLoading: true });
 
     try {
@@ -239,8 +263,8 @@ export const useAppStore = create<AppState>((set, get) => ({
     } catch {
       set({ isAddressLoading: false });
     }
-  },
-  createAddress: async (payload) => {
+      },
+      createAddress: async (payload) => {
     const nextAddress = await saveAddress({
       ...payload,
       userId: payload.userId ?? get().currentUserId
@@ -259,8 +283,8 @@ export const useAppStore = create<AppState>((set, get) => ({
     }));
 
     return nextAddress;
-  },
-  updateAddress: async (addressId, payload) => {
+      },
+      updateAddress: async (addressId, payload) => {
     const updatedAddress = await updateSavedAddress(addressId, payload);
 
     set((state) => ({
@@ -278,8 +302,8 @@ export const useAppStore = create<AppState>((set, get) => ({
     }));
 
     return updatedAddress;
-  },
-  deleteAddress: async (addressId) => {
+      },
+      deleteAddress: async (addressId) => {
     const userId = get().currentUserId;
 
     await deleteSavedAddress(addressId, userId);
@@ -311,11 +335,11 @@ export const useAppStore = create<AppState>((set, get) => ({
         )
       };
     });
-  },
-  selectAddress: (addressId) => {
+      },
+      selectAddress: (addressId) => {
     set({ selectedAddressId: addressId });
-  },
-  setDefaultAddress: async (addressId) => {
+      },
+      setDefaultAddress: async (addressId) => {
     const currentAddress = get().addresses.find((address) => address.id === addressId);
 
     if (!currentAddress) {
@@ -330,10 +354,12 @@ export const useAppStore = create<AppState>((set, get) => ({
       kat: currentAddress.kat,
       daire: currentAddress.daire,
       postaKodu: currentAddress.postaKodu,
+      latitude: currentAddress.latitude,
+      longitude: currentAddress.longitude,
       isDefault: true
     });
 
-    set((state) => ({
+        set((state) => ({
       addresses: state.addresses.map((address) =>
         address.id === updatedAddress.id
           ? updatedAddress
@@ -341,5 +367,26 @@ export const useAppStore = create<AppState>((set, get) => ({
       ),
       selectedAddressId: updatedAddress.id
     }));
-  }
-}));
+      },
+      setHydrated: (hydrated) => set({ hasHydrated: hydrated })
+    }),
+    {
+      name: 'cabuk-customer-app',
+      storage: createJSONStorage(() => AsyncStorage),
+      partialize: (state) => ({
+        isAuthenticated: state.isAuthenticated,
+        cartItems: state.cartItems,
+        activeRestaurantId: state.activeRestaurantId,
+        orders: state.orders,
+        addresses: state.addresses,
+        selectedAddressId: state.selectedAddressId,
+        currentUserId: state.currentUserId,
+        currentUserEmail: state.currentUserEmail,
+        language: state.language
+      }),
+      onRehydrateStorage: () => (state) => {
+        state?.setHydrated(true);
+      }
+    }
+  )
+);

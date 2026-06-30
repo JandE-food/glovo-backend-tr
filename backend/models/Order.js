@@ -24,6 +24,22 @@ const orderItemSchema = new mongoose.Schema(
   }
 );
 
+const coordinateSchema = new mongoose.Schema(
+  {
+    latitude: {
+      type: Number,
+      default: null
+    },
+    longitude: {
+      type: Number,
+      default: null
+    }
+  },
+  {
+    _id: false
+  }
+);
+
 const orderSchema = new mongoose.Schema(
   {
     userId: {
@@ -59,6 +75,26 @@ const orderSchema = new mongoose.Schema(
     deliveryAddress: {
       type: mongoose.Schema.Types.Mixed,
       default: null
+    },
+    deliveryLocation: {
+      type: coordinateSchema,
+      default: null
+    },
+    driverLocation: {
+      type: coordinateSchema,
+      default: null
+    },
+    assignedDriverId: {
+      type: String,
+      default: ''
+    },
+    assignedDriverName: {
+      type: String,
+      default: ''
+    },
+    assignedDriverAvatar: {
+      type: String,
+      default: ''
     },
     status: {
       type: String,

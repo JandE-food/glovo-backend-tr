@@ -15,6 +15,7 @@ import { useDriverStore } from '../store/useDriverStore';
 import { colors } from '../theme/colors';
 import type { Coordinates } from '../types/models';
 import type { RootStackParamList } from '../types/navigation';
+import { formatCurrency } from '../utils/format';
 
 const getRadiusValue = (radius: string) => Number(radius.replace('km', ''));
 
@@ -34,6 +35,10 @@ export const JobsDashboard = () => {
   const [neighborhood, setNeighborhood] = useState('');
   const [isNeighborhoodOpen, setNeighborhoodOpen] = useState(false);
   const [driverLocation, setDriverLocation] = useState<Coordinates>(fallbackDriverLocation);
+  const availableJobs = useMemo(
+    () => jobs.filter((job) => job.status === 'available'),
+    [jobs]
+  );
 
   useEffect(() => {
     void refreshJobs();
@@ -81,12 +86,12 @@ export const JobsDashboard = () => {
 
   const filteredJobs = useMemo(
     () =>
-      jobs.filter(
+      availableJobs.filter(
         (job) =>
           job.distanceKm <= getRadiusValue(radius) &&
           (!neighborhood || job.neighborhood === neighborhood)
       ),
-    [jobs, neighborhood, radius]
+    [availableJobs, neighborhood, radius]
   );
   const featuredJob = filteredJobs[0];
   const mapCoordinates = useMemo(() => {
@@ -158,7 +163,7 @@ export const JobsDashboard = () => {
           <Text style={styles.mapOverlayLabel}>{t('jobs.socketStatus')}</Text>
           {featuredJob ? (
             <>
-              <Text style={styles.mapOverlayValue}>ALL {featuredJob.payout}</Text>
+              <Text style={styles.mapOverlayValue}>{formatCurrency(featuredJob.payout)}</Text>
               <Text style={styles.mapOverlayMeta}>
                 {Math.max(10, Math.round(featuredJob.distanceKm * 7))} min • {t('jobs.distanceAway', { distance: featuredJob.distanceKm })}
               </Text>
@@ -216,6 +221,7 @@ export const JobsDashboard = () => {
             onAcceptPress={() => {
               setCurrentJob(job.id);
               void updateJobStatus(job.id, 'enRoute');
+              navigation.navigate('Navigation', { jobId: job.id });
             }}
           />
         ))}

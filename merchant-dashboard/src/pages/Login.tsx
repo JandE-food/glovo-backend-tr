@@ -9,6 +9,7 @@ import { useMerchantI18n } from '../utils/i18n';
 export const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const isAuthenticated = useMerchantStore((state) => state.isAuthenticated);
   const setLogin = useMerchantStore((state) => state.girisYap);
   const setLanguage = useMerchantStore((state) => state.setLanguage);
   const { t } = useMerchantI18n();
@@ -25,14 +26,25 @@ export const Login = () => {
     }
   }, [location.state]);
 
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
+
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError('');
     setIsSubmitting(true);
 
     try {
-      await girisIste(email, password);
-      setLogin(email);
+      const session = await girisIste(email, password);
+      setLogin({
+        email,
+        restaurantId: session?.restaurantId,
+        restaurantName: session?.restaurantName,
+        restaurantImageUrl: session?.restaurantImageUrl
+      });
       navigate('/dashboard');
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : t.login.loginFailed);

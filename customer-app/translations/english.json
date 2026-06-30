@@ -92,7 +92,7 @@
     "kartAciklama": "Pay by debit or credit card through Paystack checkout.",
     "qrSecenegi": "Albanian QR",
     "qrAciklama": "Pay from supported banking apps using the national Albanian QR flow.",
-    "islemUcreti": "Transaction fee: ALL 100",
+    "islemUcreti": "Transaction fee: GBP 100",
     "turkBankalari": "Supported banks"
   },
   "orders": {

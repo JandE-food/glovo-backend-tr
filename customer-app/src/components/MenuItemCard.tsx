@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
 import { colors } from '../theme/colors';
@@ -23,6 +23,7 @@ export const MenuItemCard = ({ item, quantity, onIncrement, onDecrement }: MenuI
 
   return (
     <View style={styles.card}>
+      {item.imageUrl ? <Image source={{ uri: item.imageUrl }} style={styles.image} /> : null}
       <View style={styles.info}>
         <Text style={styles.title}>{`${title} (${formatCurrency(item.price)})`}</Text>
         <Text style={styles.description}>{description}</Text>
@@ -58,13 +59,18 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.surface,
     borderRadius: 18,
-    padding: 16,
     gap: 14,
     borderWidth: 1,
     borderColor: colors.border,
     marginBottom: 14,
+    overflow: 'hidden'
+  },
+  image: {
+    width: '100%',
+    height: 168,
   },
   info: {
+    paddingHorizontal: 16,
     gap: 6,
   },
   title: {
@@ -78,6 +84,8 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   actions: {
+    paddingHorizontal: 16,
+    paddingBottom: 16,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',

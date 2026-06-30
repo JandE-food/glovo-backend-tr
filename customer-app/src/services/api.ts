@@ -6,6 +6,7 @@ import type {
   Address,
   AddressPayload,
   BackendOrderResponse,
+  Coordinates,
   Order,
   OrderStatus,
   PaymentMethod,
@@ -16,6 +17,7 @@ import type {
 export const API_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://135.125.184.123:3000';
 export const DEFAULT_USER_ID = 'user-1';
 const LOCAL_ADDRESSES_STORAGE_KEY_PREFIX = 'cabuk-customer-addresses';
+const LOCAL_CUSTOMER_ACCOUNTS_STORAGE_KEY = 'cabuk-customer-accounts';
 
 type AuthResponse = {
   message?: string;
@@ -60,6 +62,8 @@ type MenuItemApiRecord = {
   description?: string;
   fiyat?: number;
   price?: number;
+  imageUrl?: string;
+  image?: string;
 };
 
 type OrderApiRecord = {
@@ -82,6 +86,10 @@ type OrderApiRecord = {
   teslimatAdresi?: AddressApiRecord;
   deliveryAddress?: AddressApiRecord;
   items?: OrderItemApiRecord[];
+  assignedDriverName?: string;
+  assignedDriverAvatar?: string;
+  deliveryLocation?: CoordinateApiRecord;
+  driverLocation?: CoordinateApiRecord;
 };
 
 type OrderItemApiRecord = {
@@ -111,6 +119,17 @@ type AddressApiRecord = {
   daire?: string;
   postaKodu?: string;
   isDefault?: boolean;
+  latitude?: number | null;
+  longitude?: number | null;
+  lat?: number | null;
+  lng?: number | null;
+};
+
+type CoordinateApiRecord = {
+  latitude?: number | null;
+  longitude?: number | null;
+  lat?: number | null;
+  lng?: number | null;
 };
 
 type CreateOrderPayload = {
@@ -127,12 +146,13 @@ type CreateOrderPayload = {
   paymentStatus: string;
   paymentTransactionId: string;
   deliveryAddress: Address;
+  deliveryLocation?: Coordinates | null;
 };
 
 type PaystackCheckoutPayload = {
   orderId: string;
   amount: number;
-  currency: 'ALL';
+  currency: 'GBP';
   paymentMethod: PaymentMethod;
   email: string;
   redirectUrl?: string;
@@ -199,8 +219,52 @@ const orderStatusMap: Record<string, OrderStatus> = {
 const normalizeId = (value: unknown, fallback: string) =>
   typeof value === 'string' && value.length > 0 ? value : fallback;
 
+const normalizeCoordinateValue = (value: unknown) => {
+  const nextValue = Number(value);
+  return Number.isFinite(nextValue) ? nextValue : null;
+};
+
 const getLocalAddressesStorageKey = (userId: string) =>
   `${LOCAL_ADDRESSES_STORAGE_KEY_PREFIX}:${userId || DEFAULT_USER_ID}`;
+
+type LocalCustomerAccount = {
+  id: string;
+  name: string;
+  email: string;
+  password: string;
+  phone?: string;
+};
+
+const normalizeEmail = (email: string) => email.trim().toLocaleLowerCase('en-US');
+
+const readLocalCustomerAccounts = async () => {
+  const rawValue = await AsyncStorage.getItem(LOCAL_CUSTOMER_ACCOUNTS_STORAGE_KEY);
+  if (!rawValue) {
+    return [] as LocalCustomerAccount[];
+  }
+
+  try {
+    const parsed = JSON.parse(rawValue) as LocalCustomerAccount[];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+};
+
+const writeLocalCustomerAccounts = async (accounts: LocalCustomerAccount[]) => {
+  await AsyncStorage.setItem(LOCAL_CUSTOMER_ACCOUNTS_STORAGE_KEY, JSON.stringify(accounts));
+};
+
+const mapLocalCustomerAuthResponse = (account: LocalCustomerAccount): AuthResponse => ({
+  message: 'Login successful',
+  token: `local-customer-${account.id}`,
+  user: {
+    id: account.id,
+    name: account.name,
+    email: account.email,
+    phone: account.phone
+  }
+});
 
 const normalizeLocalAddress = (address: Partial<Address>): Address => ({
   id: normalizeId(address.id, `address-${Date.now()}`),
@@ -213,7 +277,9 @@ const normalizeLocalAddress = (address: Partial<Address>): Address => ({
   kat: address.kat ?? '',
   daire: address.daire ?? '',
   postaKodu: address.postaKodu ?? '',
-  isDefault: Boolean(address.isDefault)
+  isDefault: Boolean(address.isDefault),
+  latitude: normalizeCoordinateValue(address.latitude),
+  longitude: normalizeCoordinateValue(address.longitude)
 });
 
 const readLocalAddresses = async (userId: string) => {
@@ -283,8 +349,24 @@ const mapAddress = (address: AddressApiRecord): Address => ({
   kat: address.kat ?? '',
   daire: address.daire ?? '',
   postaKodu: address.postaKodu ?? '',
-  isDefault: Boolean(address.isDefault)
+  isDefault: Boolean(address.isDefault),
+  latitude: normalizeCoordinateValue(address.latitude ?? address.lat),
+  longitude: normalizeCoordinateValue(address.longitude ?? address.lng)
 });
+
+const mapCoordinates = (coordinate?: CoordinateApiRecord | null): Coordinates | undefined => {
+  const latitude = normalizeCoordinateValue(coordinate?.latitude ?? coordinate?.lat);
+  const longitude = normalizeCoordinateValue(coordinate?.longitude ?? coordinate?.lng);
+
+  if (latitude === null || longitude === null) {
+    return undefined;
+  }
+
+  return {
+    latitude,
+    longitude
+  };
+};
 
 const mapRestaurant = (restaurant: RestaurantApiRecord): Restaurant => ({
   id: normalizeId(restaurant.id ?? restaurant._id, `restaurant-${Date.now()}`),
@@ -299,6 +381,11 @@ const mapRestaurant = (restaurant: RestaurantApiRecord): Restaurant => ({
     'https://coresg-normal.trae.ai/api/ide/v1/text_to_image?prompt=realistic%20Tirana%20restaurant%20storefront%2C%20food%20delivery%20listing%20cover%2C%20warm%20lighting%2C%20professional%20food%20app%20photo&image_size=landscape_16_9'
 });
 
+const buildMenuItemFallbackImage = (name: string) =>
+  `https://coresg-normal.trae.ai/api/ide/v1/text_to_image?prompt=${encodeURIComponent(
+    `realistic ${name} plated for a food delivery app menu, appetizing restaurant presentation, natural light, professional food photography`
+  )}&image_size=square_hd`;
+
 const mapMenuItem = (item: MenuItemApiRecord, restaurantId: string, restaurantName: string) => ({
   id: normalizeId(item.id ?? item._id ?? item.urunId, `menu-${Date.now()}`),
   restaurantId,
@@ -306,6 +393,7 @@ const mapMenuItem = (item: MenuItemApiRecord, restaurantId: string, restaurantNa
   descriptionKey: item.aciklama ?? item.description ?? '',
   price: Number(item.fiyat ?? item.price ?? 0),
   restaurantNameKey: restaurantName,
+  imageUrl: item.imageUrl ?? item.image ?? buildMenuItemFallbackImage(item.ad ?? item.name ?? 'restaurant dish'),
   quantity: 1
 });
 
@@ -336,7 +424,11 @@ const mapOrder = (order: OrderApiRecord): Order => {
         : undefined,
     paymentMethod: order.paymentMethod ?? order.odemeYontemi,
     paymentTransactionId: order.paymentTransactionId ?? order.odemeIslemId,
-    backendOrderId: normalizeId(order.id ?? order._id, '')
+    backendOrderId: normalizeId(order.id ?? order._id, ''),
+    assignedDriverName: order.assignedDriverName,
+    assignedDriverAvatar: order.assignedDriverAvatar,
+    deliveryLocation: mapCoordinates(order.deliveryLocation),
+    driverLocation: mapCoordinates(order.driverLocation)
   };
 };
 
@@ -374,23 +466,94 @@ export const getApiErrorMessage = (
 };
 
 export const login = async (email: string, password: string) => {
-  const response = await api.post<AuthResponse>('/auth/login', {
-    email,
-    password
-  });
+  try {
+    const response = await api.post<AuthResponse>('/auth/login', {
+      email,
+      password
+    });
+    const responseUser = response.data.user as
+      | {
+          id?: string;
+          name?: string;
+          email?: string;
+          phone?: string;
+        }
+      | undefined;
 
-  return response.data;
+    const normalizedEmail = normalizeEmail(email);
+    const accounts = await readLocalCustomerAccounts();
+    if (!accounts.some((entry) => normalizeEmail(entry.email) === normalizedEmail)) {
+      await writeLocalCustomerAccounts([
+        {
+          id: responseUser?.id ?? `customer-${Date.now()}`,
+          name: responseUser?.name ?? 'Cabuk Customer',
+          email: normalizedEmail,
+          password,
+          phone: responseUser?.phone
+        },
+        ...accounts
+      ]);
+    }
+
+    return response.data;
+  } catch (error) {
+    const normalizedEmail = normalizeEmail(email);
+    const accounts = await readLocalCustomerAccounts();
+    const account = accounts.find(
+      (entry) => normalizeEmail(entry.email) === normalizedEmail && entry.password === password
+    );
+
+    if (account) {
+      return mapLocalCustomerAuthResponse(account);
+    }
+
+    if (isAxiosError(error) && error.response?.status === 401) {
+      throw new Error('Invalid credentials');
+    }
+
+    throw error;
+  }
 };
 
 export const signup = async (name: string, email: string, password: string, phone: string) => {
-  const response = await api.post<AuthResponse>('/auth/signup', {
-    name,
-    email,
+  const normalizedEmail = normalizeEmail(email);
+  const localAccount: LocalCustomerAccount = {
+    id: `customer-${Date.now()}`,
+    name: name.trim() || 'Cabuk Customer',
+    email: normalizedEmail,
     password,
-    phone
-  });
+    phone: phone.trim()
+  };
 
-  return response.data;
+  try {
+    const response = await api.post<AuthResponse>('/auth/signup', {
+      name,
+      email,
+      password,
+      phone
+    });
+
+    const accounts = await readLocalCustomerAccounts();
+    if (!accounts.some((entry) => normalizeEmail(entry.email) === normalizedEmail)) {
+      await writeLocalCustomerAccounts([localAccount, ...accounts]);
+    }
+
+    return response.data;
+  } catch (error) {
+    const accounts = await readLocalCustomerAccounts();
+    const existingAccount = accounts.find((entry) => normalizeEmail(entry.email) === normalizedEmail);
+
+    if (existingAccount) {
+      throw new Error('You already have an account.');
+    }
+
+    if (isAxiosError(error) && error.response?.status === 409) {
+      throw error;
+    }
+
+    await writeLocalCustomerAccounts([localAccount, ...accounts]);
+    return mapLocalCustomerAuthResponse(localAccount);
+  }
 };
 
 export const getRestaurants = async (category: string) => {
@@ -486,6 +649,8 @@ export const saveAddress = async (address: AddressPayload) => {
       kat: address.kat,
       daire: address.daire,
       postaKodu: address.postaKodu,
+      latitude: normalizeCoordinateValue(address.latitude),
+      longitude: normalizeCoordinateValue(address.longitude),
       isDefault: address.isDefault
     });
     const nextAddresses = [
@@ -657,17 +822,33 @@ export const listenDriverLocation = (
   }
 
   if (joinedOrderRoomId && joinedOrderRoomId !== orderId) {
+    socket.emit('leave-order-room', joinedOrderRoomId);
     socket.emit('order_room_leave', joinedOrderRoomId);
   }
 
+  const handleLocationUpdated = (location: DriverLocation) => {
+    const lat = normalizeCoordinateValue(location?.lat);
+    const lng = normalizeCoordinateValue(location?.lng);
+
+    if (lat === null || lng === null) {
+      return;
+    }
+
+    onLocationUpdated({ lat, lng });
+  };
+
+  socket.emit('join-order-room', orderId);
   socket.emit('order_room_join', orderId);
   joinedOrderRoomId = orderId;
-  socket.on('driver_location', onLocationUpdated);
+  socket.on('driver:location', handleLocationUpdated);
+  socket.on('driver_location', handleLocationUpdated);
 
   return () => {
-    socket.off('driver_location', onLocationUpdated);
+    socket.off('driver:location', handleLocationUpdated);
+    socket.off('driver_location', handleLocationUpdated);
 
     if (joinedOrderRoomId === orderId) {
+      socket.emit('leave-order-room', orderId);
       socket.emit('order_room_leave', orderId);
       joinedOrderRoomId = null;
     }

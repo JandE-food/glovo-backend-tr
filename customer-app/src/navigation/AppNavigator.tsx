@@ -14,6 +14,7 @@ import { PaymentScreen } from '../screens/PaymentScreen';
 import { RestaurantScreen } from '../screens/RestaurantScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
 import { SignupScreen } from '../screens/SignupScreen';
+import { useAppStore } from '../store/useAppStore';
 import { colors } from '../theme/colors';
 import type { MainTabParamList, RootStackParamList } from '../types/navigation';
 
@@ -66,11 +67,17 @@ const MainTabs = () => {
 
 export const AppNavigator = () => {
   const { t } = useTranslation();
+  const hasHydrated = useAppStore((state) => state.hasHydrated);
+  const isAuthenticated = useAppStore((state) => state.isAuthenticated);
+
+  if (!hasHydrated) {
+    return null;
+  }
 
   return (
-    <NavigationContainer>
+    <NavigationContainer key={isAuthenticated ? 'customer-authenticated' : 'customer-guest'}>
       <Stack.Navigator
-        initialRouteName="Login"
+        initialRouteName={isAuthenticated ? 'MainTabs' : 'Login'}
         screenOptions={{
           headerBackTitleVisible: false,
           contentStyle: { backgroundColor: colors.background },

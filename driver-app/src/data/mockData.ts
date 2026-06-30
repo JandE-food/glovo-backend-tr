@@ -63,7 +63,7 @@ export const mockJobs: DriverJob[] = [
 ];
 
 export const dailyTripStats: TripStat[] = [
-  { id: 'income', titleKey: 'trips.todayIncome', value: 'ALL 4,860', detailKey: 'common.tirana' },
+  { id: 'income', titleKey: 'trips.todayIncome', value: 'GBP 4,860', detailKey: 'common.tirana' },
   { id: 'completed', titleKey: 'trips.completedTrips', value: '12', detailKey: 'trips.ordersLabel' },
   { id: 'online', titleKey: 'trips.onlineTime', value: '7h 20m', detailKey: 'jobs.socketStatus' },
   { id: 'acceptance', titleKey: 'trips.acceptanceRate', value: '%94', detailKey: 'pickup.pickupReady' }

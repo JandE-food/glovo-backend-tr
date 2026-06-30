@@ -408,7 +408,141 @@ const translations: Record<AppLanguage, TranslationTree | undefined> = {
       ordersLoadFailed: 'Porosite nuk mund te ngarkoheshin'
     }
   },
-  sr: undefined
+  sr: {
+    nav: {
+      liveOrders: 'Aktivne Porudzbine',
+      menuManagement: 'Upravljanje Menijem',
+      dailySales: 'Dnevna Prodaja',
+      notifications: 'Obavestenja',
+      settings: 'Podesavanja'
+    },
+    shell: {
+      title: 'Kontrolna Tabla Prodavca',
+      description: 'Upravljaj porudzbinama, zalihama i dnevnim prihodom iz jednog operativnog prostora.',
+      session: 'Sesija',
+      signOut: 'Odjava',
+      hubTitle: 'Tirana Merchant Hub',
+      hubDescription: 'Operativni interfejs prilagodjen za Cabuk Albania',
+      liveConnectionReady: 'Veza uzivo je spremna'
+    },
+    login: {
+      brandTitle: 'Cabuk Merchant Dashboard',
+      title: 'Prijava',
+      description:
+        'Prijavi se na merchant panel pomocu brzog i toplog operativnog stila iz reference za restoran aplikaciju.',
+      liveOperations: 'Operacije uzivo',
+      incomingOrderFlow: 'Tok novih porudzbina',
+      prepView: 'Pregled pripreme',
+      kitchenPace: 'Ritam kuhinje',
+      netEarnings: 'Neto zarada',
+      dailySummary: 'Dnevni pregled',
+      merchantLogin: 'Merchant Prijava',
+      email: 'Email',
+      password: 'Lozinka',
+      passwordPlaceholder: 'Unesite lozinku',
+      signIn: 'Prijavi se',
+      signingIn: 'Prijavljivanje...',
+      loginFailed: 'Prijava nije uspela'
+    },
+    dashboard: {
+      title: 'Aktivne Porudzbine',
+      description: 'Pregled porudzbina uzivo prilagodjen brzom toku rada restorana u merchant dashboardu.',
+      acceptingOrders: 'Primanje porudzbina',
+      dailyRevenue: 'Dnevni Prihod',
+      activeOrders: 'Aktivne Porudzbine',
+      averagePrep: 'Prosecna Priprema',
+      averagePrepValue: '12 min',
+      new: 'Novo',
+      prep: 'Priprema',
+      ready: 'Spremno',
+      liveOrders: 'Aktivne Porudzbine',
+      liveOrdersHint: 'Porudzbine koje se trenutno obradjuju',
+      inPrep: 'U Pripremi',
+      inPrepHint: 'Porudzbine koje se sada pripremaju',
+      firstResponse: 'Prvi Odgovor',
+      firstResponseValue: '2 min',
+      firstResponseHint: 'Ciljano vreme za prihvatanje porudzbine'
+    },
+    inventory: {
+      section: 'Operacije',
+      title: 'Upravljanje Menijem',
+      badge: 'Pregled zaliha u restoranskom stilu',
+      totalItems: 'Ukupno Artikala',
+      totalItemsHint: 'Artikli menija koji se upravljaju u panelu',
+      inStock: 'Na Stanju',
+      inStockHint: 'Artikli dostupni za porucivanje',
+      outOfStock: 'Nema Na Stanju',
+      outOfStockHint: 'Artikli trenutno nisu dostupni',
+      markOutOfStock: 'Oznaci Kao Nedostupno',
+      markInStock: 'Oznaci Kao Dostupno'
+    },
+    financials: {
+      section: 'Finansijski Panel',
+      title: 'Dnevna Prodaja',
+      summaryBadge: 'Neto zarada se racuna nakon provizije od 10%',
+      dailyRevenue: 'Dnevni Prihod',
+      dailyRevenueHint: 'Ukupna vrednost danas obradjenih porudzbina',
+      orderCount: 'Broj Porudzbina',
+      orderCountHint: 'Ukupan broj danasnjih porudzbina',
+      netEarnings: 'Neto Zarada',
+      netEarningsHint: 'Prihod nakon provizije',
+      dailySummary: 'Dnevni Pregled',
+      performanceOverview: 'Pregled danasnjih rezultata',
+      commissionRate: 'Stopa Provizije',
+      formula: 'Formula neto zarade',
+      todayNet: 'Danasnji Neto',
+      note: 'Prihvataj porudzbine brze kako bi smanjio vreme pripreme i ucinio dnevnu zaradu predvidljivijom.'
+    },
+    settings: {
+      title: 'Podesavanja',
+      description: 'Upravljaj podesavanjima dashboarda i promeni jezik celog interfejsa.',
+      languageTitle: 'Jezik',
+      languageDescription: 'Izaberi jezik prikaza za ceo merchant dashboard.',
+      currentLanguage: 'Trenutni Jezik',
+      english: 'Engleski',
+      albanian: 'Albanski (Tosk)',
+      serbian: 'Srpski',
+      englishDescription: 'Prikazi sav tekst interfejsa na engleskom.',
+      albanianDescription: 'Prikazi sav tekst interfejsa na albanskom (Tosk).',
+      serbianDescription: 'Prikazi sav tekst interfejsa na srpskom.',
+      wholeDashboard: 'Jezik Celog Dashboarda'
+    },
+    orderCard: {
+      items: 'Stavke',
+      address: 'Adresa',
+      total: 'Ukupno'
+    },
+    statuses: {
+      orderReceived: 'Porudzbina Primljena',
+      preparing: 'U Pripremi',
+      ready: 'Spremno',
+      approaching: 'Vozac Dolazi',
+      atTheDoor: 'Ispred Vrata'
+    },
+    actions: {
+      accept: 'Prihvati',
+      startPrep: 'Zapocni Pripremu',
+      ready: 'Spremno'
+    },
+    catalog: {
+      simit: 'Byrek',
+      pide: 'Tave Kosi',
+      kunefe: 'Trilece',
+      cigKofte: 'Qofte',
+      ayran: 'Dhalle',
+      bakery: 'Pekara',
+      mainDish: 'Glavno Jelo',
+      dessert: 'Dezert',
+      snack: 'Uzina'
+    },
+    misc: {
+      addressPending: 'Detalji adrese se cekaju',
+      customer: 'Kupac',
+      item: 'Stavka',
+      emailAndPasswordRequired: 'Email i lozinka su obavezni',
+      ordersLoadFailed: 'Porudzbine nisu mogle da se ucitaju'
+    }
+  }
 };
 
 export const getTranslations = (language: AppLanguage) =>

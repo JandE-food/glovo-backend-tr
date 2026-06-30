@@ -14,28 +14,14 @@ import {
 } from '../services/api';
 import { useAppStore } from '../store/useAppStore';
 import { colors } from '../theme/colors';
-import type { Order } from '../types/models';
+import type { Coordinates, Order } from '../types/models';
 import type { RootStackParamList } from '../types/navigation';
-import { formatAddressSummary } from '../utils/address';
+import { formatAddressSummary, getAddressCoordinates, neighborhoodCoordinates } from '../utils/address';
 import { formatCurrency } from '../utils/format';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'OrderDetails'>;
 
-type Coordinate = {
-  latitude: number;
-  longitude: number;
-};
-
-const neighborhoodCoordinates: Record<string, Coordinate> = {
-  blloku: { latitude: 41.3194, longitude: 19.8156 },
-  'komuna e parisit': { latitude: 41.3095, longitude: 19.8018 },
-  'pazari i ri': { latitude: 41.3314, longitude: 19.8249 },
-  'don bosko': { latitude: 41.3442, longitude: 19.7941 },
-  'liqeni i thate': { latitude: 41.3049, longitude: 19.7993 },
-  '21 dhjetori': { latitude: 41.3201, longitude: 19.7928 }
-};
-
-const restaurantCoordinateByName = (restaurantName: string): Coordinate => {
+const restaurantCoordinateByName = (restaurantName: string): Coordinates => {
   const normalized = restaurantName.toLocaleLowerCase('en-US');
 
   if (normalized.includes('blloku')) {
@@ -57,22 +43,17 @@ const restaurantCoordinateByName = (restaurantName: string): Coordinate => {
   return { latitude: 41.3275, longitude: 19.8187 };
 };
 
-const customerCoordinateFromOrder = (order?: Order): Coordinate => {
-  if (!order?.deliveryAddress?.mahalle) {
-    return { latitude: 41.3275, longitude: 19.8187 };
-  }
-
-  const key = order.deliveryAddress.mahalle.toLocaleLowerCase('en-US');
-  return neighborhoodCoordinates[key] ?? { latitude: 41.3275, longitude: 19.8187 };
-};
+const fallbackCustomerCoordinate = { latitude: 41.3275, longitude: 19.8187 };
 
 export const OrderDetailsScreen = ({ route }: Props) => {
   const { t } = useTranslation();
   const localOrders = useAppStore((state) => state.orders);
   const currentUserId = useAppStore((state) => state.currentUserId);
   const [orders, setOrders] = useState<Order[]>(localOrders);
-  const [driverMarker, setDriverMarker] = useState<Coordinate | null>(null);
-  const order = orders.find((entry) => entry.id === route.params.orderId);
+  const [driverMarker, setDriverMarker] = useState<Coordinates | null>(null);
+  const order = orders.find(
+    (entry) => entry.id === route.params.orderId || entry.backendOrderId === route.params.orderId
+  );
 
   useEffect(() => {
     let isMounted = true;
@@ -107,6 +88,15 @@ export const OrderDetailsScreen = ({ route }: Props) => {
   }, [currentUserId, localOrders, t]);
 
   useEffect(() => {
+    setDriverMarker(
+      order?.driverLocation
+        ? {
+            latitude: order.driverLocation.latitude,
+            longitude: order.driverLocation.longitude
+          }
+        : null
+    );
+
     if (!order) {
       return;
     }
@@ -127,7 +117,10 @@ export const OrderDetailsScreen = ({ route }: Props) => {
     () => restaurantCoordinateByName(order?.restaurantNameKey ?? ''),
     [order?.restaurantNameKey]
   );
-  const customerCoordinate = useMemo(() => customerCoordinateFromOrder(order), [order]);
+  const customerCoordinate = useMemo(
+    () => order?.deliveryLocation ?? getAddressCoordinates(order?.deliveryAddress) ?? fallbackCustomerCoordinate,
+    [order]
+  );
   const polylineCoordinates = useMemo(
     () => [restaurantCoordinate, customerCoordinate],
     [customerCoordinate, restaurantCoordinate]

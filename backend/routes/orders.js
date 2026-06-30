@@ -8,11 +8,41 @@ const router = express.Router();
 
 const fallbackOrders = [];
 
+const normalizeCoordinateValue = (value) => {
+  const nextValue = Number(value);
+  return Number.isFinite(nextValue) ? nextValue : null;
+};
+
+const normalizeLocation = (value) => {
+  if (!value || typeof value !== 'object') {
+    return null;
+  }
+
+  const latitude = normalizeCoordinateValue(value.latitude ?? value.lat);
+  const longitude = normalizeCoordinateValue(value.longitude ?? value.lng);
+
+  if (latitude === null || longitude === null) {
+    return null;
+  }
+
+  return { latitude, longitude };
+};
+
 const emitOrderReceived = (io, order) => {
-  io.to('merchants').emit('order_received', order);
+  if (order.restaurantId) {
+    io.to(`merchant:${order.restaurantId}`).emit('order_received', order);
+  } else {
+    io.to('merchants').emit('order_received', order);
+  }
+  io.to(`customer:${order.userId ?? 'guest'}`).emit('order_received', order);
 };
 
 const emitStatusChanged = (io, order) => {
+  if (order.restaurantId) {
+    io.to(`merchant:${order.restaurantId}`).emit('order_status_changed', order);
+  } else {
+    io.to('merchants').emit('order_status_changed', order);
+  }
   io.to(`customer:${order.userId ?? 'guest'}`).emit('order_status_changed', order);
 };
 
@@ -26,9 +56,15 @@ const getOrdersHandler = async (request, response) => {
     : request.query.userId
       ? String(request.query.userId)
       : undefined;
+  const restaurantId = request.query.restaurantId
+    ? String(request.query.restaurantId)
+    : undefined;
 
   if (mongoose.connection.readyState === 1) {
-    const filtre = userId ? { userId } : {};
+    const filtre = {
+      ...(userId ? { userId } : {}),
+      ...(restaurantId ? { restaurantId } : {})
+    };
     const orders = await Order.find(filtre).sort({ createdAt: -1 }).lean();
 
     response.json({ orders });
@@ -36,9 +72,17 @@ const getOrdersHandler = async (request, response) => {
   }
 
   response.json({
-    orders: userId
-      ? fallbackOrders.filter((order) => order.userId === userId)
-      : fallbackOrders
+    orders: fallbackOrders.filter((order) => {
+      if (userId && order.userId !== userId) {
+        return false;
+      }
+
+      if (restaurantId && String(order.restaurantId ?? '') !== restaurantId) {
+        return false;
+      }
+
+      return true;
+    })
   });
 };
 
@@ -72,6 +116,11 @@ router.post('/', async (request, response) => {
       payload.paymentTransactionId ?? payload.odemeIslemId ?? ''
     ),
     deliveryAddress: payload.deliveryAddress ?? payload.teslimatAdresi ?? null,
+    deliveryLocation: normalizeLocation(payload.deliveryLocation ?? payload.konum),
+    driverLocation: normalizeLocation(payload.driverLocation),
+    assignedDriverId: String(payload.assignedDriverId ?? ''),
+    assignedDriverName: String(payload.assignedDriverName ?? ''),
+    assignedDriverAvatar: String(payload.assignedDriverAvatar ?? ''),
     status: 'received'
   };
 
@@ -109,6 +158,9 @@ router.patch('/:orderId/status', async (request, response) => {
   const io = request.app.get('io');
   const { orderId } = request.params;
   const nextStatus = request.body?.status ?? request.body?.durum;
+  const nextDriverId = request.body?.assignedDriverId;
+  const nextDriverName = request.body?.assignedDriverName;
+  const nextDriverAvatar = request.body?.assignedDriverAvatar;
 
   if (!nextStatus) {
     response.status(400).json({
@@ -128,7 +180,12 @@ router.patch('/:orderId/status', async (request, response) => {
 
     const order = await Order.findByIdAndUpdate(
       orderId,
-      { status: nextStatus },
+      {
+        status: nextStatus,
+        ...(nextDriverId ? { assignedDriverId: String(nextDriverId) } : {}),
+        ...(nextDriverName ? { assignedDriverName: String(nextDriverName) } : {}),
+        ...(nextDriverAvatar ? { assignedDriverAvatar: String(nextDriverAvatar) } : {})
+      },
       { new: true }
     );
 
@@ -140,7 +197,7 @@ router.patch('/:orderId/status', async (request, response) => {
     }
 
     emitStatusChanged(io, order);
-    if (String(nextStatus) === 'preparing') {
+    if (String(nextStatus) === 'preparing' || String(nextStatus) === 'ready') {
       emitDriverOrderAvailable(io, order);
     }
 
@@ -162,11 +219,14 @@ router.patch('/:orderId/status', async (request, response) => {
 
   fallbackOrders[orderIndex] = {
     ...fallbackOrders[orderIndex],
-    status: nextStatus
+    status: nextStatus,
+    ...(nextDriverId ? { assignedDriverId: String(nextDriverId) } : {}),
+    ...(nextDriverName ? { assignedDriverName: String(nextDriverName) } : {}),
+    ...(nextDriverAvatar ? { assignedDriverAvatar: String(nextDriverAvatar) } : {})
   };
 
   emitStatusChanged(io, fallbackOrders[orderIndex]);
-  if (String(nextStatus) === 'preparing') {
+  if (String(nextStatus) === 'preparing' || String(nextStatus) === 'ready') {
     emitDriverOrderAvailable(io, fallbackOrders[orderIndex]);
   }
 

@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { ScreenContainer } from '../components/ScreenContainer';
 import { useDriverStore } from '../store/useDriverStore';
 import { colors } from '../theme/colors';
+import { formatCurrency } from '../utils/format';
 
 export const TripsBreakdown = () => {
   const { t } = useTranslation();
@@ -23,7 +24,7 @@ export const TripsBreakdown = () => {
       <View style={styles.statsGrid}>
         <View style={styles.statCard}>
           <Text style={styles.statLabel}>{t('trips.todayIncome')}</Text>
-          <Text style={styles.statValue}>ALL {totalEarnings}</Text>
+          <Text style={styles.statValue}>{formatCurrency(totalEarnings)}</Text>
         </View>
         <View style={styles.statCard}>
           <Text style={styles.statLabel}>{t('trips.completedTrips')}</Text>
@@ -48,7 +49,7 @@ export const TripsBreakdown = () => {
               <Text style={styles.tripMeta}>{job.address}</Text>
             </View>
             <View style={styles.tripRight}>
-              <Text style={styles.tripPrice}>ALL {job.payout}</Text>
+              <Text style={styles.tripPrice}>{formatCurrency(job.payout)}</Text>
               <Text style={styles.tripMeta}>{t('trips.ordersLabel', { count: job.itemCount })}</Text>
             </View>
           </View>

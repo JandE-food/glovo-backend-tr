@@ -64,6 +64,7 @@ export const AppNavigator = () => {
   const isAuthenticated = useDriverStore((state) => state.isAuthenticated);
   const hydrateLanguage = useDriverStore((state) => state.hydrateLanguage);
   const prependJob = useDriverStore((state) => state.prependJob);
+  const driverId = useDriverStore((state) => state.driverPhone || state.driverCode || state.driverName);
 
   useEffect(() => {
     void hydrateLanguage();
@@ -74,8 +75,8 @@ export const AppNavigator = () => {
       return;
     }
 
-    return listenForDriverOrders(prependJob);
-  }, [isAuthenticated, prependJob]);
+    return listenForDriverOrders(prependJob, { driverId });
+  }, [driverId, isAuthenticated, prependJob]);
 
   return (
     <NavigationContainer>

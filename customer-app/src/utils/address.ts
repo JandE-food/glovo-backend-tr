@@ -1,4 +1,4 @@
-import type { Address } from '../types/models';
+import type { Address, Coordinates } from '../types/models';
 
 export const mahalleOptions = [
   'Blloku',
@@ -10,6 +10,15 @@ export const mahalleOptions = [
 ] as const;
 
 export type MahalleOption = (typeof mahalleOptions)[number];
+
+export const neighborhoodCoordinates: Record<string, Coordinates> = {
+  blloku: { latitude: 41.3194, longitude: 19.8156 },
+  'komuna e parisit': { latitude: 41.3095, longitude: 19.8018 },
+  'pazari i ri': { latitude: 41.3314, longitude: 19.8249 },
+  'don bosko': { latitude: 41.3442, longitude: 19.7941 },
+  'liqeni i thate': { latitude: 41.3049, longitude: 19.7993 },
+  '21 dhjetori': { latitude: 41.3201, longitude: 19.7928 }
+};
 
 export const getIlceFromMahalle = (mahalle: string) => {
   if (!mahalle) {
@@ -34,6 +43,24 @@ export const getSelectedAddressId = (
   addresses: Address[],
   selectedAddressId: string | null,
 ) => getSelectedAddress(addresses, selectedAddressId)?.id ?? null;
+
+export const getAddressCoordinates = (address?: Address | null): Coordinates | null => {
+  if (
+    address &&
+    typeof address.latitude === 'number' &&
+    Number.isFinite(address.latitude) &&
+    typeof address.longitude === 'number' &&
+    Number.isFinite(address.longitude)
+  ) {
+    return {
+      latitude: address.latitude,
+      longitude: address.longitude
+    };
+  }
+
+  const neighborhoodKey = address?.mahalle?.trim().toLocaleLowerCase('en-US') ?? '';
+  return neighborhoodCoordinates[neighborhoodKey] ?? null;
+};
 
 export const formatAddressSummary = (address: Address) =>
   `${address.mahalle}, ${address.sokak}, Nr. ${address.apartmanNo}, Kati ${address.kat}, Ap. ${address.daire}, ${address.ilce} ${address.postaKodu}`;

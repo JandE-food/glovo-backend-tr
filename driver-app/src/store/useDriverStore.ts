@@ -9,6 +9,16 @@ import type { AppLanguage, DriverJob, DriverJobStatus } from '../types/models';
 
 const LANGUAGE_STORAGE_KEY = 'cabuk-driver-language';
 
+const buildShareableDriverAvatar = (driverName: string, profileImageUrl: string) => {
+  if (/^https?:\/\//i.test(profileImageUrl)) {
+    return profileImageUrl;
+  }
+
+  return `https://coresg-normal.trae.ai/api/ide/v1/text_to_image?prompt=${encodeURIComponent(
+    `professional courier driver portrait of ${driverName || 'Cabuk Driver'}, delivery app profile avatar, clean background, realistic photography`
+  )}&image_size=square`;
+};
+
 type DriverState = {
   isAuthenticated: boolean;
   driverName: string;
@@ -94,7 +104,8 @@ export const useDriverStore = create<DriverState>()(
         set({ isJobsLoading: true });
 
         try {
-          const jobs = await fetchDriverJobs();
+          const driverId = get().driverPhone || get().driverCode || get().driverName;
+          const jobs = await fetchDriverJobs(driverId);
           const currentJobId = get().currentJobId;
           const nextCurrentJobId = jobs.some((job) => job.id === currentJobId)
             ? currentJobId
@@ -127,13 +138,18 @@ export const useDriverStore = create<DriverState>()(
       setCurrentJob: (jobId) => set({ currentJobId: jobId }),
       updateJobStatus: async (jobId, status) => {
         const previousJobs = get().jobs;
+        const driver = {
+          id: get().driverPhone || get().driverCode || get().driverName,
+          name: get().driverName,
+          avatar: buildShareableDriverAvatar(get().driverName, get().profileImageUrl)
+        };
 
         set((state) => ({
           jobs: state.jobs.map((job) => (job.id === jobId ? { ...job, status } : job))
         }));
 
         try {
-          await syncDriverJobStatus(jobId, status);
+          await syncDriverJobStatus(jobId, status, driver);
         } catch {
           set({ jobs: previousJobs });
         }

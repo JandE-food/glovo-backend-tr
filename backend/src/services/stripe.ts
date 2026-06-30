@@ -6,13 +6,13 @@ export type StripePaymentMethod = 'card' | 'qr';
 
 export type StripePaymentRequest = {
   amount: number;
-  currency: 'ALL';
+  currency: 'GBP';
   paymentMethod: StripePaymentMethod;
 };
 
 const TRANSACTION_FEE_ALL = 100;
 const ALBANIAN_BANKS = ['BKT', 'Raiffeisen Bank Albania', 'Credins Bank', 'OTP Bank Albania', 'Union Bank'] as const;
-const DEFAULT_CURRENCY = 'ALL';
+const DEFAULT_CURRENCY = 'GBP';
 const stripeModuleName = 'stripe';
 
 const toMinorUnits = (amount: number) => Math.round(amount * 100);
@@ -68,16 +68,16 @@ const validatePaymentRequest = (
     throw new Error('Amount must be a positive number');
   }
 
-  if (payload.currency !== 'ALL') {
-    throw new Error('Only ALL currency is supported');
+  if (payload.currency !== 'GBP') {
+    throw new Error('Only GBP currency is supported');
   }
 
   if (payload.paymentMethod !== 'card' && payload.paymentMethod !== 'qr') {
     throw new Error('paymentMethod must be card or qr');
   }
 
-  if (DEFAULT_CURRENCY !== 'ALL') {
-    throw new Error('CURRENCY must be configured as ALL');
+  if (DEFAULT_CURRENCY !== 'GBP') {
+    throw new Error('CURRENCY must be configured as GBP');
   }
 
   return {

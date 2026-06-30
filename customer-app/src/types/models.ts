@@ -18,6 +18,7 @@ export type MenuItem = {
   nameKey: string;
   descriptionKey: string;
   price: number;
+  imageUrl?: string;
 };
 
 export type CartItem = MenuItem & {
@@ -26,6 +27,11 @@ export type CartItem = MenuItem & {
 };
 
 export type PaymentMethod = 'card' | 'qr';
+
+export type Coordinates = {
+  latitude: number;
+  longitude: number;
+};
 
 export type OrderStatus =
   | 'received'
@@ -47,6 +53,10 @@ export type Order = {
   paymentMethod?: PaymentMethod;
   paymentTransactionId?: string;
   backendOrderId?: string;
+  assignedDriverName?: string;
+  assignedDriverAvatar?: string;
+  deliveryLocation?: Coordinates;
+  driverLocation?: Coordinates;
 };
 
 export type Address = {
@@ -61,6 +71,8 @@ export type Address = {
   daire: string;
   postaKodu: string;
   isDefault: boolean;
+  latitude?: number | null;
+  longitude?: number | null;
 };
 
 export type AddressPayload = {
@@ -72,6 +84,8 @@ export type AddressPayload = {
   daire: string;
   postaKodu: string;
   isDefault: boolean;
+  latitude?: number | null;
+  longitude?: number | null;
 };
 
 export type PaymentGatewayResponse = {

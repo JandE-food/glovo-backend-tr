@@ -68,9 +68,15 @@ export const OrdersScreen = (_props: Props) => {
       currentUserId,
       setOrders,
       (status) => {
+        const statusMessage =
+          status === 'preparing'
+            ? 'Your order has been accepted and is now being prepared.'
+            : status === 'approaching'
+              ? 'Your driver is on the way.'
+              : t('orders.statusUpdated', { status: getOrderStatusLabel(status) });
         Alert.alert(
           t('common.siparisler'),
-          t('orders.statusUpdated', { status: getOrderStatusLabel(status) })
+          statusMessage
         );
       }
     );

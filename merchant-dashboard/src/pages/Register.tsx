@@ -1,4 +1,4 @@
-import { KeyRound, Mail, User } from 'lucide-react';
+import { KeyRound, Mail, Store, User } from 'lucide-react';
 import { FormEvent, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -11,7 +11,9 @@ export const Register = () => {
   const { t } = useMerchantI18n();
   const language = useMerchantStore((state) => state.language);
   const setLanguage = useMerchantStore((state) => state.setLanguage);
+  const setLogin = useMerchantStore((state) => state.girisYap);
   const [name, setName] = useState('');
+  const [restaurantName, setRestaurantName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -23,9 +25,14 @@ export const Register = () => {
     setIsSubmitting(true);
 
     try {
-      await kayitOl({ name, email, password });
-      window.alert('Your account has been created. Please sign in.');
-      navigate('/', { replace: true, state: { email } });
+      const session = await kayitOl({ name, email, password, restaurantName });
+      setLogin({
+        email,
+        restaurantId: session.restaurantId,
+        restaurantName: session.restaurantName,
+        restaurantImageUrl: session.restaurantImageUrl
+      });
+      navigate('/dashboard', { replace: true });
     } catch (submitError) {
       const message =
         submitError instanceof Error ? submitError.message : t.login.loginFailed;
@@ -89,6 +96,19 @@ export const Register = () => {
 
             <label className="mt-5 block">
               <span className="mb-3 flex items-center gap-2 text-sm font-semibold text-muted">
+                <Store className="h-4 w-4 text-accent" />
+                Restaurant name
+              </span>
+              <input
+                value={restaurantName}
+                onChange={(event) => setRestaurantName(event.target.value)}
+                className="w-full rounded-2xl border border-[#E5E7EB] bg-white px-4 py-4 text-ink outline-none transition focus:border-accent"
+                placeholder="Maman Bistro"
+              />
+            </label>
+
+            <label className="mt-5 block">
+              <span className="mb-3 flex items-center gap-2 text-sm font-semibold text-muted">
                 <Mail className="h-4 w-4 text-accent" />
                 Email
               </span>
@@ -138,4 +158,3 @@ export const Register = () => {
     </div>
   );
 };
-

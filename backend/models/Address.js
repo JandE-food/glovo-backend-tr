@@ -40,6 +40,14 @@ const addressSchema = new mongoose.Schema(
       type: String,
       default: 'Tirane'
     },
+    latitude: {
+      type: Number,
+      default: null
+    },
+    longitude: {
+      type: Number,
+      default: null
+    },
     isDefault: {
       type: Boolean,
       default: false

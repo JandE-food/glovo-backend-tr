@@ -28,8 +28,8 @@
   "cabuk": {
     "sehir": "Tirane",
     "dil": "sq-AL",
-    "paraBirimi": "ALL",
-    "paraSembolu": "ALL",
+    "paraBirimi": "GBP",
+    "paraSembolu": "GBP",
     "odeme": {
       "saglayici": "Paystack",
       "yontemler": [

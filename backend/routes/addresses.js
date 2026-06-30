@@ -6,6 +6,11 @@ const { isFallbackId } = require('../utils/idHelpers.js');
 
 const router = express.Router();
 
+const normalizeCoordinateValue = (value) => {
+  const nextValue = Number(value);
+  return Number.isFinite(nextValue) ? nextValue : null;
+};
+
 const fallbackAddresses = [
   {
     id: 'address-1',
@@ -18,6 +23,8 @@ const fallbackAddresses = [
     postaKodu: '1001',
     ilce: 'Blloku',
     il: 'Tirane',
+    latitude: 41.3194,
+    longitude: 19.8156,
     isDefault: true
   }
 ];
@@ -66,6 +73,8 @@ router.post('/', async (request, response) => {
     postaKodu: payload.postaKodu,
     ilce: payload.ilce ?? payload.mahalle,
     il: payload.il ?? 'Tirane',
+    latitude: normalizeCoordinateValue(payload.latitude ?? payload.lat),
+    longitude: normalizeCoordinateValue(payload.longitude ?? payload.lng),
     isDefault: Boolean(payload.isDefault)
   };
 
@@ -147,7 +156,9 @@ router.patch('/:addressId', async (request, response) => {
       {
         ...payload,
         ilce: payload.ilce ?? payload.mahalle,
-        il: payload.il ?? 'Tirane'
+        il: payload.il ?? 'Tirane',
+        latitude: normalizeCoordinateValue(payload.latitude ?? payload.lat),
+        longitude: normalizeCoordinateValue(payload.longitude ?? payload.lng)
       },
       { new: true }
     );
@@ -178,7 +189,9 @@ router.patch('/:addressId', async (request, response) => {
     ...fallbackAddresses[addressIndex],
     ...payload,
     ilce: payload.ilce ?? payload.mahalle,
-    il: payload.il ?? 'Tirane'
+    il: payload.il ?? 'Tirane',
+    latitude: normalizeCoordinateValue(payload.latitude ?? payload.lat),
+    longitude: normalizeCoordinateValue(payload.longitude ?? payload.lng)
   };
 
   response.json({

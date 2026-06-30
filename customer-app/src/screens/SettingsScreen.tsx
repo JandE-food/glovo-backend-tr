@@ -16,7 +16,7 @@ export const SettingsScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const currentUserEmail = useAppStore((state) => state.currentUserEmail);
   const currentUserId = useAppStore((state) => state.currentUserId);
-  const setSession = useAppStore((state) => state.setSession);
+  const clearSession = useAppStore((state) => state.clearSession);
 
   return (
     <ScreenContainer>
@@ -72,8 +72,7 @@ export const SettingsScreen = () => {
               text: 'Log Out',
               style: 'destructive',
               onPress: () => {
-                const nextUserId = `guest-${Date.now()}`;
-                setSession({ userId: nextUserId, email: `${nextUserId}@cabuk.com` });
+                clearSession();
                 navigation.reset({
                   index: 0,
                   routes: [{ name: 'Login' }]

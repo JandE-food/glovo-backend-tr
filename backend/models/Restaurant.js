@@ -2,6 +2,10 @@ const mongoose = require('mongoose');
 
 const menuSchema = new mongoose.Schema(
   {
+    id: {
+      type: String,
+      required: true
+    },
     ad: {
       type: String,
       required: true
@@ -21,6 +25,10 @@ const menuSchema = new mongoose.Schema(
     stoktaVar: {
       type: Boolean,
       default: true
+    },
+    imageUrl: {
+      type: String,
+      default: ''
     }
   },
   {
@@ -49,6 +57,19 @@ const restaurantSchema = new mongoose.Schema(
     kategori: {
       type: String,
       default: 'restoran'
+    },
+    imageUrl: {
+      type: String,
+      default: ''
+    },
+    ownerUserId: {
+      type: String,
+      default: ''
+    },
+    ownerEmail: {
+      type: String,
+      default: '',
+      index: true
     },
     menu: {
       type: [menuSchema],

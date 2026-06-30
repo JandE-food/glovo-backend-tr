@@ -92,7 +92,7 @@
     "kartAciklama": "Paguaj me karte debiti ose krediti permes Paystack checkout.",
     "qrSecenegi": "QR Shqiptar",
     "qrAciklama": "Paguaj nga aplikacionet bankare te mbeshtetura permes rrjedhes kombetare QR.",
-    "islemUcreti": "Tarifa e transaksionit: ALL 100",
+    "islemUcreti": "Tarifa e transaksionit: GBP 100",
     "turkBankalari": "Bankat e mbeshtetura"
   },
   "orders": {

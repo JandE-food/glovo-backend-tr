@@ -64,28 +64,32 @@ export const menuItems: MenuItem[] = [
     restaurantId: 'r3',
     nameKey: 'menu.simit.name',
     descriptionKey: 'menu.simit.description',
-    price: 25
+    price: 25,
+    imageUrl: 'https://coresg-normal.trae.ai/api/ide/v1/text_to_image?prompt=realistic%20freshly%20baked%20Albanian%20byrek%20pastry%20on%20a%20ceramic%20plate%2C%20crispy%20golden%20layers%2C%20warm%20restaurant%20lighting%2C%20professional%20food%20photography&image_size=square_hd'
   },
   {
     id: 'm2',
     restaurantId: 'r3',
     nameKey: 'menu.pide.name',
     descriptionKey: 'menu.pide.description',
-    price: 45
+    price: 45,
+    imageUrl: 'https://coresg-normal.trae.ai/api/ide/v1/text_to_image?prompt=realistic%20tave%20kosi%20served%20hot%20in%20a%20baked%20dish%2C%20Albanian%20comfort%20food%2C%20creamy%20yogurt%20top%2C%20restaurant%20table%2C%20professional%20food%20photo&image_size=square_hd'
   },
   {
     id: 'm3',
     restaurantId: 'r1',
     nameKey: 'menu.kunefe.name',
     descriptionKey: 'menu.kunefe.description',
-    price: 60
+    price: 60,
+    imageUrl: 'https://coresg-normal.trae.ai/api/ide/v1/text_to_image?prompt=realistic%20slice%20of%20trilece%20dessert%20with%20caramel%20glaze%2C%20soft%20milk%20cake%2C%20elegant%20dessert%20plate%2C%20professional%20food%20photography&image_size=square_hd'
   },
   {
     id: 'm4',
     restaurantId: 'r2',
     nameKey: 'menu.cigKofte.name',
     descriptionKey: 'menu.cigKofte.description',
-    price: 55
+    price: 55,
+    imageUrl: 'https://coresg-normal.trae.ai/api/ide/v1/text_to_image?prompt=realistic%20grilled%20Albanian%20qofte%20served%20with%20fresh%20greens%20and%20flatbread%2C%20restaurant%20presentation%2C%20professional%20food%20photo&image_size=square_hd'
   }
 ];
 

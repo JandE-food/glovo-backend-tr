@@ -26,6 +26,10 @@ const userSchema = new mongoose.Schema(
       type: String,
       enum: ['customer', 'driver', 'merchant', 'admin'],
       default: 'customer'
+    },
+    restaurantId: {
+      type: String,
+      default: ''
     }
   },
   {

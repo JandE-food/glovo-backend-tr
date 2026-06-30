@@ -83,6 +83,18 @@ type BackendOrderApiRecord = {
     adet?: number;
     quantity?: number;
   }>;
+  assignedDriverId?: string;
+  assignedDriverName?: string;
+  assignedDriverAvatar?: string;
+  deliveryLocation?: BackendCoordinateApiRecord | null;
+  driverLocation?: BackendCoordinateApiRecord | null;
+};
+
+type BackendCoordinateApiRecord = {
+  latitude?: number | null;
+  longitude?: number | null;
+  lat?: number | null;
+  lng?: number | null;
 };
 
 type BackendRestaurantApiRecord = {
@@ -114,6 +126,25 @@ const normalizeId = (value: unknown, fallback: string) =>
 const normalizeStatus = (value?: string) =>
   value?.toLocaleLowerCase('en-US').replace(/\s+/g, '') ?? '';
 
+const normalizeCoordinateValue = (value: unknown) => {
+  const nextValue = Number(value);
+  return Number.isFinite(nextValue) ? nextValue : null;
+};
+
+const mapCoordinates = (value?: BackendCoordinateApiRecord | null) => {
+  const latitude = normalizeCoordinateValue(value?.latitude ?? value?.lat);
+  const longitude = normalizeCoordinateValue(value?.longitude ?? value?.lng);
+
+  if (latitude === null || longitude === null) {
+    return null;
+  }
+
+  return {
+    latitude,
+    longitude
+  };
+};
+
 const mapBackendStatusToDriverStatus = (value?: string): DriverJobStatus => {
   const normalized = normalizeStatus(value);
 
@@ -133,20 +164,15 @@ const mapBackendStatusToDriverStatus = (value?: string): DriverJobStatus => {
     return 'enRoute';
   }
 
-  if (normalized === 'alındı' || normalized === 'alindi') {
-    return 'pickedUp';
-  }
-
-  if (normalized === 'ready') {
-    return 'pickedUp';
-  }
-
-  if (normalized === 'hazırlanıyor' || normalized === 'hazirlaniyor') {
-    return 'atStore';
-  }
-
-  if (normalized === 'preparing') {
-    return 'atStore';
+  if (
+    normalized === 'alındı' ||
+    normalized === 'alindi' ||
+    normalized === 'ready' ||
+    normalized === 'hazırlanıyor' ||
+    normalized === 'hazirlaniyor' ||
+    normalized === 'preparing'
+  ) {
+    return 'available';
   }
 
   return 'available';
@@ -240,11 +266,23 @@ const fetchRestaurantNameMap = async (restaurantIds: string[]) => {
   }, {});
 };
 
-export const fetchDriverJobs = async (): Promise<DriverJob[]> => {
+export const fetchDriverJobs = async (driverId?: string): Promise<DriverJob[]> => {
   const response = await api.get<{ orders?: BackendOrderApiRecord[] }>('/orders');
   const orders = (response.data.orders ?? []).filter((order) => {
     const status = normalizeStatus(order.status ?? order.durum);
-    return status !== 'delivered' && status !== 'cancelled';
+    const assignedDriverId = String(order.assignedDriverId ?? '');
+    const isAssignedToCurrentDriver = Boolean(driverId) && assignedDriverId === driverId;
+    const isUnassigned = assignedDriverId.length === 0;
+
+    if (status === 'preparing' || status === 'ready') {
+      return isUnassigned || isAssignedToCurrentDriver;
+    }
+
+    if (status === 'approaching' || status === 'at_door') {
+      return isAssignedToCurrentDriver;
+    }
+
+    return false;
   });
 
   const restaurantIds = [...new Set(orders.map((order) => order.restaurantId).filter(Boolean))];
@@ -262,12 +300,9 @@ export const fetchDriverJobs = async (): Promise<DriverJob[]> => {
         }
       : order.teslimatAdresi ?? undefined;
     const neighborhood = mapNeighborhood(deliveryAddress);
-    const customerLocation = offsetCoordinate(
-      neighborhoodCenters[neighborhood],
-      index,
-      0.0025,
-      0.002
-    );
+    const customerLocation =
+      mapCoordinates(order.deliveryLocation) ??
+      offsetCoordinate(neighborhoodCenters[neighborhood], index, 0.0025, 0.002);
     const restaurantLocation = offsetCoordinate(customerLocation, index, -0.004, -0.003);
     const itemCount = (order.items ?? []).reduce(
       (total, item) => total + Number(item.adet ?? item.quantity ?? 1),
@@ -307,7 +342,9 @@ export const mapDriverOrderSocketPayload = (
       }
     : order.teslimatAdresi ?? undefined;
   const neighborhood = mapNeighborhood(deliveryAddress);
-  const customerLocation = offsetCoordinate(neighborhoodCenters[neighborhood], index, 0.0025, 0.002);
+  const customerLocation =
+    mapCoordinates(order.deliveryLocation) ??
+    offsetCoordinate(neighborhoodCenters[neighborhood], index, 0.0025, 0.002);
   const restaurantLocation = offsetCoordinate(customerLocation, index, -0.004, -0.003);
   const itemCount = (order.items ?? []).reduce(
     (total, item) => total + Number(item.adet ?? item.quantity ?? 1),
@@ -331,10 +368,21 @@ export const mapDriverOrderSocketPayload = (
   };
 };
 
-export const listenForDriverOrders = (onOrderAvailable: (job: DriverJob) => void) => {
+export const listenForDriverOrders = (
+  onOrderAvailable: (job: DriverJob) => void,
+  options?: { driverId?: string }
+) => {
   const socket = connectDriverSocket();
 
   const handleOrderAvailable = (payload: DriverOrderSocketPayload) => {
+    const assignedDriverId = String(payload.assignedDriverId ?? '');
+    const isAssignedToCurrentDriver =
+      Boolean(options?.driverId) && assignedDriverId === String(options?.driverId);
+
+    if (assignedDriverId && !isAssignedToCurrentDriver) {
+      return;
+    }
+
     onOrderAvailable(mapDriverOrderSocketPayload(payload, Date.now() % 3));
   };
 
@@ -345,7 +393,15 @@ export const listenForDriverOrders = (onOrderAvailable: (job: DriverJob) => void
   };
 };
 
-export const syncDriverJobStatus = async (jobId: string, status: DriverJobStatus) => {
+export const syncDriverJobStatus = async (
+  jobId: string,
+  status: DriverJobStatus,
+  driver?: {
+    id?: string;
+    name?: string;
+    avatar?: string;
+  }
+) => {
   const backendStatus = mapDriverStatusToBackendStatus(status);
 
   if (!backendStatus) {
@@ -353,11 +409,14 @@ export const syncDriverJobStatus = async (jobId: string, status: DriverJobStatus
   }
 
   await api.patch(`/orders/${jobId}/status`, {
-    status: backendStatus
+    status: backendStatus,
+    assignedDriverId: driver?.id ?? '',
+    assignedDriverName: driver?.name ?? '',
+    assignedDriverAvatar: driver?.avatar ?? ''
   });
 };
 
-let locationIntervalId: ReturnType<typeof setInterval> | undefined;
+let locationSubscription: Location.LocationSubscription | undefined;
 
 export const startDriverLocationStreaming = async (orderId: string) => {
   if (!orderId) {
@@ -371,39 +430,44 @@ export const startDriverLocationStreaming = async (orderId: string) => {
   }
 
   const socket = connectDriverSocket();
-
-  const emitCurrentLocation = async () => {
-    try {
-      const currentPosition = await Location.getCurrentPositionAsync({
-        accuracy: Location.Accuracy.Balanced
-      });
-
-      socket.emit('driver_location', {
-        orderId,
-        location: {
-          lat: currentPosition.coords.latitude,
-          lng: currentPosition.coords.longitude
-        }
-      });
-    } catch {
-      // Ignore one-off location failures and retry on the next interval tick.
-    }
-  };
-
-  await emitCurrentLocation();
-
-  if (locationIntervalId) {
-    clearInterval(locationIntervalId);
+  if (locationSubscription) {
+    locationSubscription.remove();
+    locationSubscription = undefined;
   }
 
-  locationIntervalId = setInterval(() => {
-    void emitCurrentLocation();
-  }, 2000);
+  try {
+    const currentPosition = await Location.getCurrentPositionAsync({
+      accuracy: Location.Accuracy.High
+    });
+
+    socket.emit('driver:location', {
+      orderId,
+      lat: currentPosition.coords.latitude,
+      lng: currentPosition.coords.longitude
+    });
+  } catch {
+    // Continue with watch mode even if the first location lookup fails.
+  }
+
+  locationSubscription = await Location.watchPositionAsync(
+    {
+      accuracy: Location.Accuracy.High,
+      timeInterval: 3000,
+      distanceInterval: 5
+    },
+    (position) => {
+      socket.emit('driver:location', {
+        orderId,
+        lat: position.coords.latitude,
+        lng: position.coords.longitude
+      });
+    }
+  );
 
   return () => {
-    if (locationIntervalId) {
-      clearInterval(locationIntervalId);
-      locationIntervalId = undefined;
+    if (locationSubscription) {
+      locationSubscription.remove();
+      locationSubscription = undefined;
     }
   };
 };

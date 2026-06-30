@@ -9,6 +9,7 @@ import { ScreenContainer } from '../components/ScreenContainer';
 import { useDriverStore } from '../store/useDriverStore';
 import { colors } from '../theme/colors';
 import type { RootStackParamList } from '../types/navigation';
+import { formatCurrency } from '../utils/format';
 
 export const OrdersScreen = () => {
   const { t } = useTranslation();
@@ -16,6 +17,7 @@ export const OrdersScreen = () => {
   const jobs = useDriverStore((state) => state.jobs);
   const setCurrentJob = useDriverStore((state) => state.setCurrentJob);
   const updateJobStatus = useDriverStore((state) => state.updateJobStatus);
+  const availableJobs = jobs.filter((job) => job.status === 'available');
 
   return (
     <ScreenContainer>
@@ -26,13 +28,13 @@ export const OrdersScreen = () => {
       </View>
 
       <View style={styles.list}>
-        {jobs.map((job) => (
+        {availableJobs.map((job) => (
           <View key={job.id} style={styles.orderCard}>
             <View style={styles.topRow}>
               <View style={styles.badge}>
                 <Text style={styles.badgeText}>{job.status}</Text>
               </View>
-              <Text style={styles.price}>ALL {job.payout}</Text>
+              <Text style={styles.price}>{formatCurrency(job.payout)}</Text>
             </View>
             <Text style={styles.restaurant}>{job.restaurantName}</Text>
             <Text style={styles.meta}>{job.address}</Text>
@@ -56,6 +58,7 @@ export const OrdersScreen = () => {
                   onPress={() => {
                     setCurrentJob(job.id);
                     void updateJobStatus(job.id, 'enRoute');
+                    navigation.navigate('Navigation', { jobId: job.id });
                   }}
                 />
               </View>

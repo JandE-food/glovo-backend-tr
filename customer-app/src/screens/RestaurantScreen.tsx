@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Alert, StyleSheet, Text, View } from 'react-native';
+import { Alert, Image, StyleSheet, Text, View } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useTranslation } from 'react-i18next';
 
@@ -88,6 +88,7 @@ export const RestaurantScreen = ({ route, navigation }: Props) => {
   return (
     <ScreenContainer>
       <View style={styles.hero}>
+        {restaurant?.imageUrl ? <Image source={{ uri: restaurant.imageUrl }} style={styles.heroImage} /> : null}
         <Text style={styles.title}>
           {restaurant
             ? restaurant.nameKey.includes('.')
@@ -152,6 +153,12 @@ export const RestaurantScreen = ({ route, navigation }: Props) => {
 const styles = StyleSheet.create({
   hero: {
     gap: 8,
+  },
+  heroImage: {
+    width: '100%',
+    height: 180,
+    borderRadius: 24,
+    marginBottom: 8,
   },
   title: {
     fontSize: 28,

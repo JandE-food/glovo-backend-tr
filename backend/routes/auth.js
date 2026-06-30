@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose');
 
 const User = require('../models/User.js');
+const restaurantsRouter = require('./restaurants.js');
 
 const router = express.Router();
 
@@ -38,11 +39,20 @@ const getSignupPayload = (body = {}) => ({
   email: normalizeEmail(body.email),
   sifre: body.sifre ?? body.password,
   telefon: body.telefon ?? body.phone,
-  rol: body.rol ?? body.role ?? body.userType
+  rol: body.rol ?? body.role ?? body.userType,
+  restaurantName: body.restaurantName,
+  restaurantImageUrl: body.restaurantImageUrl
+});
+
+const buildAuthUserResponse = (user, restaurant) => ({
+  ...user,
+  restaurantId: restaurant?.id ?? restaurant?._id?.toString?.() ?? user.restaurantId ?? '',
+  restaurantName: restaurant?.ad ?? user.restaurantName ?? '',
+  restaurantImageUrl: restaurant?.imageUrl ?? user.restaurantImageUrl ?? ''
 });
 
 const signupHandler = async (request, response) => {
-  const { adSoyad, email, sifre, telefon, rol } = getSignupPayload(request.body ?? {});
+  const { adSoyad, email, sifre, telefon, rol, restaurantName, restaurantImageUrl } = getSignupPayload(request.body ?? {});
   const requestedRole = String(rol ?? 'customer').toLocaleLowerCase('en-US');
   const allowedRoles = ['customer', 'driver', 'merchant'];
 
@@ -78,12 +88,24 @@ const signupHandler = async (request, response) => {
         telefon,
         rol: requestedRole
       });
+      let restaurant = null;
+
+      if (requestedRole === 'merchant') {
+        restaurant = await restaurantsRouter.ensureMerchantRestaurant({
+          ad: restaurantName?.trim() || `${adSoyad.split(' ')[0] || 'Cabuk'} Kitchen`,
+          ownerEmail: email,
+          ownerUserId: kullanici._id.toString(),
+          imageUrl: restaurantImageUrl
+        });
+        kullanici.restaurantId = restaurant.id ?? restaurant._id?.toString?.() ?? '';
+        await kullanici.save();
+      }
       const token = createToken(kullanici);
 
       response.status(201).json({
         message: 'User account created',
         token,
-        user: kullanici
+        user: buildAuthUserResponse(kullanici.toObject(), restaurant)
       });
       return;
     } catch (error) {
@@ -113,15 +135,28 @@ const signupHandler = async (request, response) => {
     email,
     sifre,
     telefon: telefon ?? '',
-    rol: requestedRole
+    rol: requestedRole,
+    restaurantId: ''
   };
+
+  let restaurant = null;
+
+  if (requestedRole === 'merchant') {
+    restaurant = await restaurantsRouter.ensureMerchantRestaurant({
+      ad: restaurantName?.trim() || `${adSoyad.split(' ')[0] || 'Cabuk'} Kitchen`,
+      ownerEmail: email,
+      ownerUserId: kullanici.id,
+      imageUrl: restaurantImageUrl
+    });
+    kullanici.restaurantId = restaurant.id ?? '';
+  }
 
   fallbackUsers.unshift(kullanici);
 
   response.status(201).json({
     message: 'User account created',
     token: createToken(kullanici),
-    user: kullanici
+    user: buildAuthUserResponse(kullanici, restaurant)
   });
 };
 
@@ -158,10 +193,15 @@ const loginHandler = async (request, response) => {
       const demoKullanici = findDemoMerchant(email, sifre);
 
       if (demoKullanici) {
+        const restaurant = await restaurantsRouter.ensureMerchantRestaurant({
+          ad: 'Maman Bistro',
+          ownerEmail: demoKullanici.email,
+          ownerUserId: demoKullanici.id
+        });
         response.json({
           message: 'Login successful',
           token: createToken(demoKullanici),
-          user: demoKullanici
+          user: buildAuthUserResponse(demoKullanici, restaurant)
         });
         return;
       }
@@ -172,10 +212,24 @@ const loginHandler = async (request, response) => {
       return;
     }
 
+    let restaurant = null;
+    if (kullanici.rol === 'merchant') {
+      restaurant = await restaurantsRouter.ensureMerchantRestaurant({
+        ad: request.body?.restaurantName ?? 'Maman Bistro',
+        ownerEmail: kullanici.email,
+        ownerUserId: kullanici._id.toString()
+      });
+
+      if (!kullanici.restaurantId) {
+        kullanici.restaurantId = restaurant.id ?? restaurant._id?.toString?.() ?? '';
+        await kullanici.save();
+      }
+    }
+
     response.json({
       message: 'Login successful',
       token: createToken(kullanici),
-      user: kullanici
+      user: buildAuthUserResponse(kullanici.toObject(), restaurant)
     });
     return;
   }
@@ -191,10 +245,20 @@ const loginHandler = async (request, response) => {
     return;
   }
 
+  let restaurant = null;
+  if (kullanici.rol === 'merchant') {
+    restaurant = await restaurantsRouter.ensureMerchantRestaurant({
+      ad: kullanici.restaurantName ?? 'Maman Bistro',
+      ownerEmail: kullanici.email,
+      ownerUserId: kullanici.id
+    });
+    kullanici.restaurantId = restaurant.id ?? '';
+  }
+
   response.json({
     message: 'Login successful',
     token: createToken(kullanici),
-    user: kullanici
+    user: buildAuthUserResponse(kullanici, restaurant)
   });
 };
 

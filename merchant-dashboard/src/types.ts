@@ -20,6 +20,10 @@ export type MerchantOrder = {
   total: number;
   durum: SiparisDurumu;
   olusturmaSaati: string;
+  createdAt?: string;
+  assignedDriverId?: string;
+  assignedDriverName?: string;
+  assignedDriverAvatar?: string;
 };
 
 export type MerchantNotification = {
@@ -32,9 +36,22 @@ export type MerchantNotification = {
 
 export type InventoryItem = {
   id: string;
-  ad: 'Byrek' | 'Tave Kosi' | 'Trilece' | 'Qofte';
+  ad: string;
   stoktaVar: boolean;
   kategori: string;
+  fiyat?: number;
+  aciklama?: string;
+  isCustom?: boolean;
+  imageUrl?: string;
+};
+
+export type MerchantRestaurantProfile = {
+  id: string;
+  ad: string;
+  aciklama?: string;
+  imageUrl?: string;
+  ownerEmail?: string;
+  menu: InventoryItem[];
 };
 
 export type FinancialSummary = {

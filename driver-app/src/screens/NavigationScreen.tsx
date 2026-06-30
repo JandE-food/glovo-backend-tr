@@ -11,6 +11,7 @@ import { useDriverStore } from '../store/useDriverStore';
 import { colors } from '../theme/colors';
 import type { Coordinates } from '../types/models';
 import type { RootStackParamList } from '../types/navigation';
+import { formatCurrency } from '../utils/format';
 
 type NavigationScreenProps = NativeStackScreenProps<RootStackParamList, 'Navigation'>;
 
@@ -26,18 +27,9 @@ export const NavigationScreen = ({ route }: NavigationScreenProps) => {
   const [driverLocation, setDriverLocation] = useState<Coordinates>(fallbackDriverLocation);
   const job = jobs.find((item) => item.id === (route.params?.jobId ?? currentJobId)) ?? jobs[0];
 
-  if (!job) {
-    return (
-      <ScreenContainer scrollable={false}>
-        <View style={styles.heroCard}>
-          <Text style={styles.title}>{t('navigation.title')}</Text>
-          <Text style={styles.subtitle}>{t('jobs.subtitle')}</Text>
-        </View>
-      </ScreenContainer>
-    );
-  }
-
   useEffect(() => {
+    let subscription: Location.LocationSubscription | undefined;
+
     const loadLocation = async () => {
       const { status } = await Location.requestForegroundPermissionsAsync();
 
@@ -50,12 +42,34 @@ export const NavigationScreen = ({ route }: NavigationScreenProps) => {
         latitude: currentPosition.coords.latitude,
         longitude: currentPosition.coords.longitude
       });
+
+      subscription = await Location.watchPositionAsync(
+        {
+          accuracy: Location.Accuracy.High,
+          distanceInterval: 5,
+          timeInterval: 3000
+        },
+        (position) => {
+          setDriverLocation({
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude
+          });
+        }
+      );
     };
 
     void loadLocation();
+
+    return () => {
+      subscription?.remove();
+    };
   }, []);
 
   useEffect(() => {
+    if (!job) {
+      return;
+    }
+
     let stopStreaming: (() => void) | undefined;
 
     const startStreaming = async () => {
@@ -67,29 +81,52 @@ export const NavigationScreen = ({ route }: NavigationScreenProps) => {
     return () => {
       stopStreaming?.();
     };
-  }, [job.id]);
+  }, [job]);
 
-  const routeCoordinates = useMemo(
-    () => [driverLocation, job.restaurantLocation, job.customerLocation],
-    [driverLocation, job.customerLocation, job.restaurantLocation]
-  );
+  const routeCoordinates = useMemo(() => {
+    if (!job) {
+      return [driverLocation];
+    }
 
-  const initialRegion = useMemo(
-    () => ({
+    return [driverLocation, job.restaurantLocation, job.customerLocation];
+  }, [driverLocation, job]);
+
+  const mapRegion = useMemo(() => {
+    if (!job) {
+      return {
+        latitude: driverLocation.latitude,
+        longitude: driverLocation.longitude,
+        latitudeDelta: 0.05,
+        longitudeDelta: 0.05
+      };
+    }
+
+    return {
       latitude: (driverLocation.latitude + job.customerLocation.latitude) / 2,
       longitude: (driverLocation.longitude + job.customerLocation.longitude) / 2,
       latitudeDelta: 0.05,
       longitudeDelta: 0.05
-    }),
-    [driverLocation.latitude, driverLocation.longitude, job.customerLocation.latitude, job.customerLocation.longitude]
-  );
+    };
+  }, [driverLocation.latitude, driverLocation.longitude, job]);
+
+  if (!job) {
+    return (
+      <ScreenContainer scrollable={false}>
+        <View style={styles.heroCard}>
+          <Text style={styles.title}>{t('navigation.title')}</Text>
+          <Text style={styles.subtitle}>{t('jobs.subtitle')}</Text>
+        </View>
+      </ScreenContainer>
+    );
+  }
 
   return (
     <ScreenContainer scrollable={false}>
       <View style={styles.mapCard}>
         <MapView
           style={styles.map}
-          initialRegion={initialRegion}
+          initialRegion={mapRegion}
+          region={mapRegion}
           showsUserLocation
           showsCompass
         >
@@ -100,7 +137,7 @@ export const NavigationScreen = ({ route }: NavigationScreenProps) => {
         </MapView>
         <View style={styles.heroCard}>
           <Text style={styles.eyebrow}>{t('navigation.title')}</Text>
-          <Text style={styles.title}>ALL {job.payout}</Text>
+          <Text style={styles.title}>{formatCurrency(job.payout)}</Text>
           <Text style={styles.subtitle}>{t('navigation.subtitle')}</Text>
         </View>
       </View>

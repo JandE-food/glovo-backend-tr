@@ -2,14 +2,16 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useTranslation } from 'react-i18next';
+import * as Location from 'expo-location';
 
+import { LocationPickerMap } from '../components/LocationPickerMap';
 import { PrimaryButton } from '../components/PrimaryButton';
 import { ScreenContainer } from '../components/ScreenContainer';
 import { SelectField } from '../components/SelectField';
 import { TextField } from '../components/TextField';
 import { useAppStore } from '../store/useAppStore';
 import { colors } from '../theme/colors';
-import type { AddressPayload } from '../types/models';
+import type { AddressPayload, Coordinates } from '../types/models';
 import type { RootStackParamList } from '../types/navigation';
 import {
   formatAddressSummary,
@@ -44,6 +46,8 @@ export const AddressScreen = (_props: Props) => {
   const [mahalleError, setMahalleError] = useState('');
   const [postaKoduError, setPostaKoduError] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const [coordinates, setCoordinates] = useState<Coordinates | null>(null);
+  const [isLocating, setIsLocating] = useState(false);
   const ilce = useMemo(() => getIlceFromMahalle(mahalle), [mahalle]);
   const il = 'Tirane';
 
@@ -63,6 +67,7 @@ export const AddressScreen = (_props: Props) => {
     setMahalleError('');
     setPostaKoduError('');
     setIsMahalleOpen(false);
+    setCoordinates(null);
   };
 
   const populateForm = (addressId: string) => {
@@ -82,6 +87,39 @@ export const AddressScreen = (_props: Props) => {
     setIsDefault(currentAddress.isDefault);
     setMahalleError('');
     setPostaKoduError('');
+    setCoordinates(
+      typeof currentAddress.latitude === 'number' && typeof currentAddress.longitude === 'number'
+        ? {
+            latitude: currentAddress.latitude,
+            longitude: currentAddress.longitude
+          }
+        : null
+    );
+  };
+
+  const handleUseCurrentLocation = async () => {
+    try {
+      setIsLocating(true);
+      const { status } = await Location.requestForegroundPermissionsAsync();
+
+      if (status !== 'granted') {
+        Alert.alert(t('address.baslik'), 'Location permission is required to pin your delivery point.');
+        return;
+      }
+
+      const currentLocation = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.High
+      });
+
+      setCoordinates({
+        latitude: currentLocation.coords.latitude,
+        longitude: currentLocation.coords.longitude
+      });
+    } catch {
+      Alert.alert(t('address.baslik'), 'Unable to get your current location right now.');
+    } finally {
+      setIsLocating(false);
+    }
   };
 
   const handleSave = async () => {
@@ -103,6 +141,8 @@ export const AddressScreen = (_props: Props) => {
       kat,
       daire,
       postaKodu,
+      latitude: coordinates?.latitude ?? null,
+      longitude: coordinates?.longitude ?? null,
       isDefault,
     };
 
@@ -188,6 +228,37 @@ export const AddressScreen = (_props: Props) => {
           </View>
           <Text style={styles.defaultLabel}>{t('address.varsayilan')}</Text>
         </Pressable>
+        <View style={styles.locationCard}>
+          <View style={styles.locationHeader}>
+            <View style={styles.locationCopy}>
+              <Text style={styles.locationTitle}>Map picker</Text>
+              <Text style={styles.locationSubtitle}>
+                Use your current location, then tap the map to fine-tune the delivery pin.
+              </Text>
+            </View>
+            <View style={styles.locationButton}>
+              <PrimaryButton
+                label={isLocating ? 'Locating...' : 'Use current location'}
+                onPress={() => {
+                  void handleUseCurrentLocation();
+                }}
+                variant="outline"
+              />
+            </View>
+          </View>
+          {coordinates ? (
+            <>
+              <LocationPickerMap coordinates={coordinates} onChange={setCoordinates} />
+              <Text style={styles.locationMeta}>
+                {coordinates.latitude.toFixed(5)}, {coordinates.longitude.toFixed(5)}
+              </Text>
+            </>
+          ) : (
+            <Text style={styles.locationPlaceholder}>
+              Save a GPS pin for more accurate delivery tracking.
+            </Text>
+          )}
+        </View>
         <View style={styles.buttonRow}>
           <View style={styles.buttonFlex}>
             <PrimaryButton
@@ -347,6 +418,41 @@ const styles = StyleSheet.create({
   defaultLabel: {
     color: colors.text,
     fontWeight: '600',
+  },
+  locationCard: {
+    borderRadius: 22,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: '#F8FAFC',
+    padding: 14,
+    gap: 12,
+  },
+  locationHeader: {
+    gap: 12,
+  },
+  locationCopy: {
+    gap: 4,
+  },
+  locationTitle: {
+    color: colors.text,
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  locationSubtitle: {
+    color: colors.textMuted,
+    lineHeight: 20,
+  },
+  locationButton: {
+    alignSelf: 'flex-start',
+  },
+  locationMeta: {
+    color: colors.primaryDark,
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  locationPlaceholder: {
+    color: colors.textMuted,
+    lineHeight: 20,
   },
   sectionTitle: {
     fontSize: 18,

@@ -5,11 +5,17 @@ import { useTranslation } from 'react-i18next';
 
 import { PrimaryButton } from '../components/PrimaryButton';
 import { ScreenContainer } from '../components/ScreenContainer';
-import { createPaystackCheckout, createPendingOrder, verifyPaystackPayment } from '../services/api';
+import {
+  createOrder,
+  createPaystackCheckout,
+  createPendingOrder,
+  getApiErrorMessage,
+  verifyPaystackPayment
+} from '../services/api';
 import { calculateCartTotal, useAppStore } from '../store/useAppStore';
 import { colors } from '../theme/colors';
 import type { RootStackParamList } from '../types/navigation';
-import { formatAddressSummary, getSelectedAddress } from '../utils/address';
+import { formatAddressSummary, getAddressCoordinates, getSelectedAddress } from '../utils/address';
 import { formatCurrency } from '../utils/format';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Payment'>;
@@ -49,6 +55,85 @@ export const PaymentScreen = ({ navigation }: Props) => {
   const pendingTxRefRef = useRef<string | null>(null);
   const isVerifyingRef = useRef(false);
   const [isPaying, setIsPaying] = useState(false);
+
+  const buildOrderPayload = (paymentStatus: 'pending' | 'paid', paymentTransactionId: string) => {
+    const restaurantId = activeRestaurantId ?? cartItems[0]?.restaurantId ?? '';
+    const deliveryLocation = getAddressCoordinates(selectedAddress);
+
+    return {
+      restaurantId,
+      payload: {
+        userId: currentUserId,
+        restaurantId,
+        items: cartItems.map((item) => ({
+          productId: item.id,
+          name: item.nameKey.includes('.') ? t(item.nameKey) : item.nameKey,
+          quantity: item.quantity,
+          price: item.price
+        })),
+        totalAmount: total,
+        paymentMethod: 'card' as const,
+        paymentStatus,
+        paymentTransactionId,
+        deliveryAddress: selectedAddress!,
+        deliveryLocation
+      }
+    };
+  };
+
+  const completeSuccessfulPayment = async (transactionId: string) => {
+    if (!selectedAddress) {
+      Alert.alert(t('common.adresYonetimi'), t('alerts.adresGerekli'));
+      return;
+    }
+
+    const { restaurantId, payload } = buildOrderPayload('paid', transactionId);
+    if (!restaurantId) {
+      Alert.alert(t('common.ode'), t('errors.network'));
+      return;
+    }
+
+    const response = await createOrder(payload);
+    const backendOrderId = response?.order?.id ?? response?.order?._id ?? '';
+
+    checkout({
+      paymentMethod: 'card',
+      transactionId,
+      backendOrderId,
+      status: 'received'
+    });
+
+    Alert.alert(t('common.ode'), t('cart.odemeBasarili'));
+    navigation.navigate('MainTabs');
+  };
+
+  const showTestModeOptions = (message?: string) => {
+    Alert.alert(
+      'Test mode',
+      message ?? 'Flutterwave checkout is unavailable right now. Choose a simulated result.',
+      [
+        {
+          text: 'Success',
+          onPress: () => {
+            void completeSuccessfulPayment(`flw_test_success_${Date.now()}`);
+          }
+        },
+        {
+          text: 'Failed',
+          onPress: () => {
+            Alert.alert(t('common.ode'), 'Error: Payment failed');
+          }
+        },
+        {
+          text: 'Cancelled',
+          style: 'cancel',
+          onPress: () => {
+            Alert.alert(t('common.ode'), 'Payment cancelled');
+          }
+        }
+      ]
+    );
+  };
 
   useEffect(() => {
     const subscription = Linking.addEventListener('url', async ({ url }) => {
@@ -142,21 +227,8 @@ export const PaymentScreen = ({ navigation }: Props) => {
     setIsPaying(true);
 
     try {
-      const pendingOrderResponse = await createPendingOrder({
-        userId: currentUserId,
-        restaurantId,
-        items: cartItems.map((item) => ({
-          productId: item.id,
-          name: item.nameKey.includes('.') ? t(item.nameKey) : item.nameKey,
-          quantity: item.quantity,
-          price: item.price,
-        })),
-        totalAmount: total,
-        paymentMethod: 'card',
-        paymentStatus: 'pending',
-        paymentTransactionId: '',
-        deliveryAddress: selectedAddress,
-      });
+      const { payload } = buildOrderPayload('pending', '');
+      const pendingOrderResponse = await createPendingOrder(payload);
 
       const backendOrderId =
         pendingOrderResponse.order.id ?? pendingOrderResponse.order._id ?? '';
@@ -170,7 +242,7 @@ export const PaymentScreen = ({ navigation }: Props) => {
       const paymentResponse = await createPaystackCheckout({
         orderId: backendOrderId,
         amount: total,
-        currency: 'ALL',
+        currency: 'GBP',
         paymentMethod: 'card',
         email: currentUserEmail,
         redirectUrl: 'cabuk://checkout',
@@ -186,8 +258,8 @@ export const PaymentScreen = ({ navigation }: Props) => {
     } catch (error) {
       pendingOrderIdRef.current = null;
       pendingTxRefRef.current = null;
-      Alert.alert(t('common.ode'), t('errors.network'));
       setIsPaying(false);
+      showTestModeOptions(getApiErrorMessage(error, t('errors.network')));
     }
   };
 
@@ -216,6 +288,19 @@ export const PaymentScreen = ({ navigation }: Props) => {
           <Text style={styles.testLine}>Expiry: 09/31 • CVV: 883 • PIN: 3310 • OTP: 12345</Text>
           <Text style={styles.testLine}>Failed (Fraudulent): 5590131743294314</Text>
           <Text style={styles.testLine}>Expiry: 11/32 • CVV: 887 • PIN: 3310 • OTP: 12345</Text>
+          <PrimaryButton
+            label="Test Success"
+            onPress={() => {
+              void completeSuccessfulPayment(`flw_test_success_${Date.now()}`);
+            }}
+          />
+          <PrimaryButton
+            label="Test Failed"
+            variant="outline"
+            onPress={() => {
+              Alert.alert(t('common.ode'), 'Error: Payment failed');
+            }}
+          />
         </View>
       ) : null}
 

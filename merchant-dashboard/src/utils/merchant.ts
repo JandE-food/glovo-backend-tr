@@ -23,9 +23,9 @@ export const hesaplaFinansalOzet = (orders: MerchantOrder[]): FinancialSummary =
   };
 };
 
-export const formatLira = (tutar: number, language: 'en' | 'sq' = 'en') =>
-  new Intl.NumberFormat(language === 'sq' ? 'sq-AL' : 'en-US', {
+export const formatLira = (tutar: number, _language: 'en' | 'sq' = 'en') =>
+  new Intl.NumberFormat('en-GB', {
     style: 'currency',
-    currency: 'ALL',
+    currency: 'GBP',
     maximumFractionDigits: 0
   }).format(tutar);

@@ -37,7 +37,7 @@ const getFlutterwaveBaseUrl = () => {
 
 const mapGatewayCurrency = (currency) => {
   const normalized = String(currency ?? '').toUpperCase();
-  return normalized === 'ALL' ? 'USD' : normalized;
+  return normalized === 'ALL' ? 'GBP' : normalized;
 };
 
 const validateInitPayload = (payload) => {
@@ -72,7 +72,7 @@ const createHostedCheckout = async (payload) => {
   const baseAmount = payload.amount;
   const totalAmount = baseAmount + TRANSACTION_FEE_ALL;
   const txRef = `cabuk_${payload.orderId}_${Date.now()}`;
-  const currency = mapGatewayCurrency(payload.currency ?? 'ALL');
+  const currency = mapGatewayCurrency(payload.currency ?? 'GBP');
   const redirectUrl = String(payload.redirectUrl ?? 'cabuk://checkout');
 
   const response = await fetch(`${baseUrl}/v3/payments`, {
