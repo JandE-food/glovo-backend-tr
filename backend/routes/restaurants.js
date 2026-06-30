@@ -319,12 +319,29 @@ router.patch('/:restaurantId/profile', async (request, response) => {
   };
 
   if (mongoose.connection.readyState === 1) {
+    let restaurant;
     if (isFallbackId(restaurantId)) {
-      response.status(404).json({ message: 'Restaurant not found' });
-      return;
+      // Try to find by owner email instead when using fallback ID
+      if (ownerEmail) {
+        restaurant = await Restaurant.findOne({ ownerEmail });
+      }
+      
+      // If not found, create a new restaurant for this owner
+      if (!restaurant) {
+        const newRestaurant = await ensureMerchantRestaurant({
+          ownerEmail,
+          ad: updates.ad || 'Cabuk Restaurant',
+          aciklama: updates.aciklama,
+          imageUrl: updates.imageUrl
+        });
+        response.json({ restaurant: normalizeRestaurantRecord(newRestaurant) });
+        return;
+      }
+    } else {
+      // Try to find by ObjectId for real MongoDB IDs
+      restaurant = await Restaurant.findById(restaurantId);
     }
 
-    const restaurant = await Restaurant.findById(restaurantId);
     if (!restaurant) {
       response.status(404).json({ message: 'Restaurant not found' });
       return;
@@ -346,7 +363,30 @@ router.patch('/:restaurantId/profile', async (request, response) => {
     return;
   }
 
-  const restaurant = fallbackRestaurants.find((entry) => entry.id === restaurantId);
+  // Fallback case (no MongoDB connected)
+  let restaurant = fallbackRestaurants.find((entry) => entry.id === restaurantId);
+  
+  // If not found, create/update by owner email
+  if (!restaurant && ownerEmail) {
+    restaurant = findFallbackRestaurantByOwnerEmail(ownerEmail);
+    if (!restaurant) {
+      // Create a new fallback restaurant
+      const newRestaurant = {
+        id: `r-${Date.now()}`,
+        ad: updates.ad || 'Cabuk Restaurant',
+        aciklama: updates.aciklama || 'Fresh menu items available for delivery.',
+        puan: 4.8,
+        teslimatSuresi: '20-35 min',
+        kategori: 'restaurants',
+        imageUrl: updates.imageUrl || buildRestaurantImage(updates.ad),
+        ownerEmail,
+        menu: createDefaultMerchantMenu()
+      };
+      fallbackRestaurants.unshift(newRestaurant);
+      restaurant = newRestaurant;
+    }
+  }
+  
   if (!restaurant) {
     response.status(404).json({ message: 'Restaurant not found' });
     return;
@@ -374,12 +414,27 @@ router.put('/:restaurantId/menu', async (request, response) => {
   const nextMenu = Array.isArray(request.body?.menu) ? request.body.menu.map(normalizeMenuItem) : [];
 
   if (mongoose.connection.readyState === 1) {
+    let restaurant;
     if (isFallbackId(restaurantId)) {
-      response.status(404).json({ message: 'Restaurant not found' });
-      return;
+      // Try to find by owner email instead when using fallback ID
+      if (ownerEmail) {
+        restaurant = await Restaurant.findOne({ ownerEmail });
+      }
+      
+      // If not found, create a new restaurant for this owner
+      if (!restaurant) {
+        const newRestaurant = await ensureMerchantRestaurant({
+          ownerEmail,
+          menu: nextMenu
+        });
+        response.json({ restaurant: normalizeRestaurantRecord(newRestaurant) });
+        return;
+      }
+    } else {
+      // Try to find by ObjectId for real MongoDB IDs
+      restaurant = await Restaurant.findById(restaurantId);
     }
 
-    const restaurant = await Restaurant.findById(restaurantId);
     if (!restaurant) {
       response.status(404).json({ message: 'Restaurant not found' });
       return;
@@ -397,7 +452,30 @@ router.put('/:restaurantId/menu', async (request, response) => {
     return;
   }
 
-  const restaurant = fallbackRestaurants.find((entry) => entry.id === restaurantId);
+  // Fallback case (no MongoDB connected)
+  let restaurant = fallbackRestaurants.find((entry) => entry.id === restaurantId);
+  
+  // If not found, create/update by owner email
+  if (!restaurant && ownerEmail) {
+    restaurant = findFallbackRestaurantByOwnerEmail(ownerEmail);
+    if (!restaurant) {
+      // Create a new fallback restaurant
+      const newRestaurant = {
+        id: `r-${Date.now()}`,
+        ad: 'Cabuk Restaurant',
+        aciklama: 'Fresh menu items available for delivery.',
+        puan: 4.8,
+        teslimatSuresi: '20-35 min',
+        kategori: 'restaurants',
+        imageUrl: buildRestaurantImage('Cabuk Restaurant'),
+        ownerEmail,
+        menu: nextMenu.length > 0 ? nextMenu : createDefaultMerchantMenu()
+      };
+      fallbackRestaurants.unshift(newRestaurant);
+      restaurant = newRestaurant;
+    }
+  }
+  
   if (!restaurant) {
     response.status(404).json({ message: 'Restaurant not found' });
     return;
