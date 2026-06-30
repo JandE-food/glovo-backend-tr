@@ -17,6 +17,7 @@ export const Inventory = () => {
   const merchantEmail = useMerchantStore((state) => state.merchantEmail);
   const merchantRestaurantId = useMerchantStore((state) => state.merchantRestaurantId);
   const merchantRestaurantName = useMerchantStore((state) => state.merchantRestaurantName);
+  const merchantRestaurantType = useMerchantStore((state) => state.merchantRestaurantType);
   const [searchQuery, setSearchQuery] = useState('');
   const [stockFilter, setStockFilter] = useState<'all' | 'in' | 'out'>('all');
   const [name, setName] = useState('');
@@ -37,7 +38,10 @@ export const Inventory = () => {
 
     const loadRestaurantProfile = async () => {
       try {
-        const profile = await restoranProfiliniGetir(merchantEmail);
+        const profile = await restoranProfiliniGetir(merchantEmail, {
+          restaurantName: merchantRestaurantName,
+          restaurantType: merchantRestaurantType
+        });
 
         if (!isMounted) {
           return;
@@ -46,7 +50,8 @@ export const Inventory = () => {
         setRestaurantProfile({
           restaurantId: profile.id,
           restaurantName: profile.ad,
-          restaurantImageUrl: profile.imageUrl
+          restaurantImageUrl: profile.imageUrl,
+          restaurantType: profile.kategori
         });
         setInventory(profile.menu);
       } catch (error) {
@@ -63,7 +68,13 @@ export const Inventory = () => {
     return () => {
       isMounted = false;
     };
-  }, [merchantEmail, setInventory, setRestaurantProfile]);
+  }, [
+    merchantEmail,
+    merchantRestaurantName,
+    merchantRestaurantType,
+    setInventory,
+    setRestaurantProfile
+  ]);
 
   const filteredInventory = useMemo(() => {
     const normalizedQuery = searchQuery.trim().toLocaleLowerCase('en-US');
@@ -95,7 +106,7 @@ export const Inventory = () => {
   };
 
   const saveMenu = async (nextMenu: InventoryItem[]) => {
-    if (!merchantRestaurantId || !merchantEmail) {
+    if (!merchantEmail) {
       return false;
     }
 
@@ -113,7 +124,8 @@ export const Inventory = () => {
       setRestaurantProfile({
         restaurantId: profile.id,
         restaurantName: profile.ad,
-        restaurantImageUrl: profile.imageUrl
+        restaurantImageUrl: profile.imageUrl,
+        restaurantType: profile.kategori
       });
       return true;
     } catch (error) {
@@ -125,7 +137,7 @@ export const Inventory = () => {
   };
 
   const handleAddItem = async () => {
-    if (!name.trim() || !category.trim() || !merchantRestaurantId || !merchantEmail) {
+    if (!name.trim() || !category.trim() || !merchantEmail) {
       return;
     }
 

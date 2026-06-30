@@ -41,18 +41,20 @@ const getSignupPayload = (body = {}) => ({
   telefon: body.telefon ?? body.phone,
   rol: body.rol ?? body.role ?? body.userType,
   restaurantName: body.restaurantName,
-  restaurantImageUrl: body.restaurantImageUrl
+  restaurantImageUrl: body.restaurantImageUrl,
+  restaurantType: body.restaurantType
 });
 
 const buildAuthUserResponse = (user, restaurant) => ({
   ...user,
   restaurantId: restaurant?.id ?? restaurant?._id?.toString?.() ?? user.restaurantId ?? '',
   restaurantName: restaurant?.ad ?? user.restaurantName ?? '',
-  restaurantImageUrl: restaurant?.imageUrl ?? user.restaurantImageUrl ?? ''
+  restaurantImageUrl: restaurant?.imageUrl ?? user.restaurantImageUrl ?? '',
+  restaurantType: restaurant?.kategori ?? user.restaurantType ?? 'restaurants'
 });
 
 const signupHandler = async (request, response) => {
-  const { adSoyad, email, sifre, telefon, rol, restaurantName, restaurantImageUrl } = getSignupPayload(request.body ?? {});
+  const { adSoyad, email, sifre, telefon, rol, restaurantName, restaurantImageUrl, restaurantType } = getSignupPayload(request.body ?? {});
   const requestedRole = String(rol ?? 'customer').toLocaleLowerCase('en-US');
   const allowedRoles = ['customer', 'driver', 'merchant'];
 
@@ -95,7 +97,8 @@ const signupHandler = async (request, response) => {
           ad: restaurantName?.trim() || `${adSoyad.split(' ')[0] || 'Cabuk'} Kitchen`,
           ownerEmail: email,
           ownerUserId: kullanici._id.toString(),
-          imageUrl: restaurantImageUrl
+          imageUrl: restaurantImageUrl,
+          kategori: restaurantType
         });
         kullanici.restaurantId = restaurant.id ?? restaurant._id?.toString?.() ?? '';
         await kullanici.save();
@@ -146,7 +149,8 @@ const signupHandler = async (request, response) => {
       ad: restaurantName?.trim() || `${adSoyad.split(' ')[0] || 'Cabuk'} Kitchen`,
       ownerEmail: email,
       ownerUserId: kullanici.id,
-      imageUrl: restaurantImageUrl
+      imageUrl: restaurantImageUrl,
+      kategori: restaurantType
     });
     kullanici.restaurantId = restaurant.id ?? '';
   }
@@ -196,7 +200,8 @@ const loginHandler = async (request, response) => {
         const restaurant = await restaurantsRouter.ensureMerchantRestaurant({
           ad: 'Maman Bistro',
           ownerEmail: demoKullanici.email,
-          ownerUserId: demoKullanici.id
+          ownerUserId: demoKullanici.id,
+          kategori: request.body?.restaurantType
         });
         response.json({
           message: 'Login successful',
@@ -217,7 +222,8 @@ const loginHandler = async (request, response) => {
       restaurant = await restaurantsRouter.ensureMerchantRestaurant({
         ad: request.body?.restaurantName ?? 'Maman Bistro',
         ownerEmail: kullanici.email,
-        ownerUserId: kullanici._id.toString()
+        ownerUserId: kullanici._id.toString(),
+        kategori: request.body?.restaurantType
       });
 
       if (!kullanici.restaurantId) {
@@ -250,7 +256,8 @@ const loginHandler = async (request, response) => {
     restaurant = await restaurantsRouter.ensureMerchantRestaurant({
       ad: kullanici.restaurantName ?? 'Maman Bistro',
       ownerEmail: kullanici.email,
-      ownerUserId: kullanici.id
+      ownerUserId: kullanici.id,
+      kategori: request.body?.restaurantType
     });
     kullanici.restaurantId = restaurant.id ?? '';
   }

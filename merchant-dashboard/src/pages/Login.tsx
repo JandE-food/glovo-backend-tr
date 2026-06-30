@@ -43,7 +43,8 @@ export const Login = () => {
         email,
         restaurantId: session?.restaurantId,
         restaurantName: session?.restaurantName,
-        restaurantImageUrl: session?.restaurantImageUrl
+        restaurantImageUrl: session?.restaurantImageUrl,
+        restaurantType: session?.restaurantType
       });
       navigate('/dashboard');
     } catch (submitError) {

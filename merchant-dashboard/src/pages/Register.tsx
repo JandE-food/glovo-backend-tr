@@ -4,7 +4,17 @@ import { useNavigate } from 'react-router-dom';
 
 import { kayitOl } from '../services/api';
 import { useMerchantStore } from '../store/useMerchantStore';
+import type { MerchantRestaurantType } from '../types';
 import { useMerchantI18n } from '../utils/i18n';
+
+const restaurantTypeOptions: Array<{ value: MerchantRestaurantType; label: string }> = [
+  { value: 'restaurants', label: 'Restaurant' },
+  { value: 'breakfast', label: 'Breakfast' },
+  { value: 'pide', label: 'Pide' },
+  { value: 'desserts', label: 'Desserts' },
+  { value: 'market', label: 'Market' },
+  { value: 'pharmacy', label: 'Pharmacy' }
+];
 
 export const Register = () => {
   const navigate = useNavigate();
@@ -14,6 +24,7 @@ export const Register = () => {
   const setLogin = useMerchantStore((state) => state.girisYap);
   const [name, setName] = useState('');
   const [restaurantName, setRestaurantName] = useState('');
+  const [restaurantType, setRestaurantType] = useState<MerchantRestaurantType>('restaurants');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -25,12 +36,13 @@ export const Register = () => {
     setIsSubmitting(true);
 
     try {
-      const session = await kayitOl({ name, email, password, restaurantName });
+      const session = await kayitOl({ name, email, password, restaurantName, restaurantType });
       setLogin({
         email,
         restaurantId: session.restaurantId,
         restaurantName: session.restaurantName,
-        restaurantImageUrl: session.restaurantImageUrl
+        restaurantImageUrl: session.restaurantImageUrl,
+        restaurantType: session.restaurantType
       });
       navigate('/dashboard', { replace: true });
     } catch (submitError) {
@@ -105,6 +117,24 @@ export const Register = () => {
                 className="w-full rounded-2xl border border-[#E5E7EB] bg-white px-4 py-4 text-ink outline-none transition focus:border-accent"
                 placeholder="Maman Bistro"
               />
+            </label>
+
+            <label className="mt-5 block">
+              <span className="mb-3 flex items-center gap-2 text-sm font-semibold text-muted">
+                <Store className="h-4 w-4 text-accent" />
+                Restaurant type
+              </span>
+              <select
+                value={restaurantType}
+                onChange={(event) => setRestaurantType(event.target.value as MerchantRestaurantType)}
+                className="w-full rounded-2xl border border-[#E5E7EB] bg-white px-4 py-4 text-ink outline-none transition focus:border-accent"
+              >
+                {restaurantTypeOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
             </label>
 
             <label className="mt-5 block">

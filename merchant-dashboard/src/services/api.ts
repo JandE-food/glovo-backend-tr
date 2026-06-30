@@ -2,6 +2,7 @@ import type {
   InventoryItem,
   MerchantOrder,
   MerchantRestaurantProfile,
+  MerchantRestaurantType,
   SiparisDurumu
 } from '../types';
 import { API_URL, socket } from './socket';
@@ -16,12 +17,14 @@ type LocalMerchantAccount = {
   restaurantName?: string;
   restaurantId?: string;
   restaurantImageUrl?: string;
+  restaurantType?: MerchantRestaurantType;
 };
 
 type MerchantAuthSession = {
   restaurantId: string;
   restaurantName: string;
   restaurantImageUrl: string;
+  restaurantType: MerchantRestaurantType;
 };
 
 const LOCAL_MERCHANT_ACCOUNTS_KEY = 'cabuk-merchant-accounts';
@@ -175,9 +178,37 @@ type MerchantRestaurantApiRecord = {
   name?: string;
   aciklama?: string;
   description?: string;
+  kategori?: string;
+  category?: string;
   imageUrl?: string;
   ownerEmail?: string;
   menu?: MerchantMenuApiRecord[];
+};
+
+const normalizeRestaurantType = (value?: string): MerchantRestaurantType => {
+  const normalized = value?.trim().toLocaleLowerCase('en-US') ?? '';
+
+  if (normalized === 'breakfast') {
+    return 'breakfast';
+  }
+
+  if (normalized === 'pide') {
+    return 'pide';
+  }
+
+  if (normalized === 'desserts') {
+    return 'desserts';
+  }
+
+  if (normalized === 'market') {
+    return 'market';
+  }
+
+  if (normalized === 'pharmacy') {
+    return 'pharmacy';
+  }
+
+  return 'restaurants';
 };
 
 const formatAdres = (
@@ -248,6 +279,7 @@ const mapRestaurantProfile = (
   id: restaurant?.id ?? restaurant?._id ?? '',
   ad: restaurant?.ad ?? restaurant?.name ?? 'Maman Bistro',
   aciklama: restaurant?.aciklama ?? restaurant?.description ?? '',
+  kategori: normalizeRestaurantType(restaurant?.kategori ?? restaurant?.category),
   imageUrl:
     restaurant?.imageUrl ??
     buildRestaurantImage(restaurant?.ad ?? restaurant?.name ?? 'Maman Bistro'),
@@ -264,6 +296,7 @@ const persistLocalAccount = (payload: {
   restaurantName: string;
   restaurantId?: string;
   restaurantImageUrl?: string;
+  restaurantType?: MerchantRestaurantType;
 }) => {
   const normalizedEmail = normalizeEmail(payload.email);
   const accounts = readLocalMerchantAccounts();
@@ -275,7 +308,8 @@ const persistLocalAccount = (payload: {
     phone: payload.phone?.trim(),
     restaurantName: payload.restaurantName.trim() || 'Maman Bistro',
     restaurantId: payload.restaurantId,
-    restaurantImageUrl: payload.restaurantImageUrl
+    restaurantImageUrl: payload.restaurantImageUrl,
+    restaurantType: payload.restaurantType ?? 'restaurants'
   };
 
   writeLocalMerchantAccounts([
@@ -289,7 +323,8 @@ const fallbackSessionFromAccount = (account?: LocalMerchantAccount | null): Merc
   restaurantName: account?.restaurantName ?? account?.name ?? 'Maman Bistro',
   restaurantImageUrl:
     account?.restaurantImageUrl ??
-    buildRestaurantImage(account?.restaurantName ?? account?.name ?? 'Maman Bistro')
+    buildRestaurantImage(account?.restaurantName ?? account?.name ?? 'Maman Bistro'),
+  restaurantType: account?.restaurantType ?? 'restaurants'
 });
 
 export const girisYap = async (email: string, password: string) => {
@@ -326,6 +361,7 @@ export const girisYap = async (email: string, password: string) => {
         restaurantId?: string;
         restaurantName?: string;
         restaurantImageUrl?: string;
+        restaurantType?: MerchantRestaurantType;
       };
     };
 
@@ -337,7 +373,10 @@ export const girisYap = async (email: string, password: string) => {
       phone: data.user?.telefon,
       restaurantName: data.user?.restaurantName ?? 'Maman Bistro',
       restaurantId: data.user?.restaurantId,
-      restaurantImageUrl: data.user?.restaurantImageUrl
+      restaurantImageUrl:
+        data.user?.restaurantImageUrl ??
+        buildRestaurantImage(data.user?.restaurantName ?? 'Maman Bistro'),
+      restaurantType: data.user?.restaurantType ?? 'restaurants'
     });
 
     return {
@@ -345,22 +384,16 @@ export const girisYap = async (email: string, password: string) => {
       restaurantName: data.user?.restaurantName ?? 'Maman Bistro',
       restaurantImageUrl:
         data.user?.restaurantImageUrl ??
-        buildRestaurantImage(data.user?.restaurantName ?? 'Maman Bistro')
+        buildRestaurantImage(data.user?.restaurantName ?? 'Maman Bistro'),
+      restaurantType: data.user?.restaurantType ?? 'restaurants'
     };
   } catch (error) {
-    const fallbackAccount = readLocalMerchantAccounts().find(
-      (account) => normalizeEmail(account.email) === normalizedEmail && account.password === password
-    );
-
-    if (fallbackAccount) {
-      return fallbackSessionFromAccount(fallbackAccount);
-    }
-
     if (normalizedEmail === 'merchant@cabuk.al' && password === '123456') {
       return {
         restaurantId: '',
         restaurantName: 'Maman Bistro',
-        restaurantImageUrl: buildRestaurantImage('Maman Bistro')
+        restaurantImageUrl: buildRestaurantImage('Maman Bistro'),
+        restaurantType: 'restaurants'
       };
     }
 
@@ -368,7 +401,7 @@ export const girisYap = async (email: string, password: string) => {
       throw error;
     }
 
-    throw new Error('Failed to fetch');
+    throw new Error('Merchant login requires a live backend connection.');
   }
   return fallbackSessionFromAccount(null);
 };
@@ -379,6 +412,7 @@ export const kayitOl = async (payload: {
   password: string;
   phone?: string;
   restaurantName: string;
+  restaurantType: MerchantRestaurantType;
 }) => {
   const t = getTranslations(getCurrentLanguage());
   const normalizedEmail = normalizeEmail(payload.email);
@@ -393,6 +427,7 @@ export const kayitOl = async (payload: {
         password: payload.password,
         phone: payload.phone ?? '',
         restaurantName: payload.restaurantName,
+        restaurantType: payload.restaurantType,
         role: 'merchant'
       })
     });
@@ -428,6 +463,7 @@ export const kayitOl = async (payload: {
         restaurantId?: string;
         restaurantName?: string;
         restaurantImageUrl?: string;
+        restaurantType?: MerchantRestaurantType;
       };
     };
 
@@ -439,7 +475,10 @@ export const kayitOl = async (payload: {
       phone: data.user?.telefon ?? payload.phone,
       restaurantName: data.user?.restaurantName ?? payload.restaurantName,
       restaurantId: data.user?.restaurantId,
-      restaurantImageUrl: data.user?.restaurantImageUrl
+      restaurantImageUrl:
+        data.user?.restaurantImageUrl ??
+        buildRestaurantImage(data.user?.restaurantName ?? payload.restaurantName),
+      restaurantType: data.user?.restaurantType ?? payload.restaurantType
     });
 
     return {
@@ -447,47 +486,51 @@ export const kayitOl = async (payload: {
       restaurantName: data.user?.restaurantName ?? (payload.restaurantName.trim() || 'Maman Bistro'),
       restaurantImageUrl:
         data.user?.restaurantImageUrl ??
-        buildRestaurantImage(data.user?.restaurantName ?? payload.restaurantName)
+        buildRestaurantImage(data.user?.restaurantName ?? payload.restaurantName),
+      restaurantType: data.user?.restaurantType ?? payload.restaurantType
     };
   } catch (error) {
-    const accounts = readLocalMerchantAccounts();
-    const existingAccount = accounts.find(
-      (account) => normalizeEmail(account.email) === normalizedEmail
-    );
-
-    if (existingAccount) {
-      throw new Error('You already have an account.');
-    }
-
-    persistLocalAccount({
-      id: accounts.find((account) => normalizeEmail(account.email) === normalizedEmail)?.id ?? `merchant-${Date.now()}`,
-      email: normalizedEmail,
-      password: payload.password,
-      name: payload.name,
-      phone: payload.phone,
-      restaurantName: payload.restaurantName,
-      restaurantImageUrl: buildRestaurantImage(payload.restaurantName)
-    });
-
-    if (error instanceof Error && error.message !== 'Failed to fetch') {
+    if (error instanceof Error) {
       throw error;
     }
 
-    return {
-      restaurantId: '',
-      restaurantName: payload.restaurantName.trim() || 'Maman Bistro',
-      restaurantImageUrl: buildRestaurantImage(payload.restaurantName)
-    };
+    throw new Error('Merchant signup requires a live backend connection.');
   }
 };
 
-export const restoranProfiliniGetir = async (ownerEmail: string) => {
-  const response = await fetch(
-    `${API_URL}/restaurants/owner-profile?ownerEmail=${encodeURIComponent(ownerEmail)}`
-  );
+export const restoranProfiliniGetir = async (
+  ownerEmail: string,
+  fallback?: {
+    restaurantName?: string;
+    restaurantType?: MerchantRestaurantType;
+  }
+) => {
+  const query = new URLSearchParams({
+    ownerEmail
+  });
+
+  if (fallback?.restaurantName?.trim()) {
+    query.set('restaurantName', fallback.restaurantName.trim());
+  }
+
+  if (fallback?.restaurantType) {
+    query.set('restaurantType', fallback.restaurantType);
+  }
+
+  const response = await fetch(`${API_URL}/restaurants/owner-profile?${query.toString()}`);
 
   if (!response.ok) {
-    throw new Error('Failed to load restaurant profile');
+    let message = 'Failed to load restaurant profile';
+
+    try {
+      const data = (await response.json()) as { message?: string };
+      if (typeof data?.message === 'string' && data.message.trim()) {
+        message = data.message;
+      }
+    } catch {
+    }
+
+    throw new Error(message);
   }
 
   const data = (await response.json()) as { restaurant?: MerchantRestaurantApiRecord };
@@ -586,7 +629,18 @@ export const restoranMenusunuKaydet = async (payload: {
   ownerEmail: string;
   menu: InventoryItem[];
 }) => {
-  const response = await fetch(`${API_URL}/restaurants/${payload.restaurantId}/menu`, {
+  let targetRestaurantId = payload.restaurantId.trim();
+
+  if (!targetRestaurantId || !isMongoObjectId(targetRestaurantId)) {
+    const existingProfile = await restoranProfiliniGetir(payload.ownerEmail);
+    targetRestaurantId = existingProfile.id;
+  }
+
+  if (!targetRestaurantId) {
+    throw new Error('Restaurant profile is unavailable. Please reload the dashboard and try again.');
+  }
+
+  const response = await fetch(`${API_URL}/restaurants/${targetRestaurantId}/menu`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -604,7 +658,17 @@ export const restoranMenusunuKaydet = async (payload: {
   });
 
   if (!response.ok) {
-    throw new Error('Failed to save restaurant menu');
+    let message = 'Failed to save restaurant menu';
+
+    try {
+      const data = (await response.json()) as { message?: string };
+      if (typeof data?.message === 'string' && data.message.trim()) {
+        message = data.message;
+      }
+    } catch {
+    }
+
+    throw new Error(message);
   }
 
   const data = (await response.json()) as { restaurant?: MerchantRestaurantApiRecord };

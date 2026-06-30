@@ -15,6 +15,7 @@ export const Settings = () => {
   const merchantRestaurantId = useMerchantStore((state) => state.merchantRestaurantId);
   const merchantRestaurantName = useMerchantStore((state) => state.merchantRestaurantName);
   const merchantRestaurantImageUrl = useMerchantStore((state) => state.merchantRestaurantImageUrl);
+  const merchantRestaurantType = useMerchantStore((state) => state.merchantRestaurantType);
   const setRestaurantProfile = useMerchantStore((state) => state.setRestaurantProfile);
   const [restaurantName, setRestaurantName] = useState(merchantRestaurantName);
   const [restaurantImageUrl, setRestaurantImageUrl] = useState(merchantRestaurantImageUrl);
@@ -44,7 +45,10 @@ export const Settings = () => {
       setIsLoadingProfile(true);
 
       try {
-        const profile = await restoranProfiliniGetir(merchantEmail);
+        const profile = await restoranProfiliniGetir(merchantEmail, {
+          restaurantName: merchantRestaurantName,
+          restaurantType: merchantRestaurantType
+        });
 
         if (!isMounted) {
           return;
@@ -53,7 +57,8 @@ export const Settings = () => {
         setRestaurantProfile({
           restaurantId: profile.id,
           restaurantName: profile.ad,
-          restaurantImageUrl: profile.imageUrl
+          restaurantImageUrl: profile.imageUrl,
+          restaurantType: profile.kategori
         });
         setRestaurantName(profile.ad);
         setRestaurantImageUrl(profile.imageUrl ?? '');
@@ -82,7 +87,13 @@ export const Settings = () => {
     return () => {
       isMounted = false;
     };
-  }, [merchantEmail, merchantRestaurantId, setRestaurantProfile]);
+  }, [
+    merchantEmail,
+    merchantRestaurantId,
+    merchantRestaurantName,
+    merchantRestaurantType,
+    setRestaurantProfile
+  ]);
 
   const handleImageUpload = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -111,12 +122,16 @@ export const Settings = () => {
 
     if (!targetRestaurantId) {
       try {
-        const profile = await restoranProfiliniGetir(merchantEmail);
+        const profile = await restoranProfiliniGetir(merchantEmail, {
+          restaurantName: merchantRestaurantName,
+          restaurantType: merchantRestaurantType
+        });
         targetRestaurantId = profile.id;
         setRestaurantProfile({
           restaurantId: profile.id,
           restaurantName: profile.ad,
-          restaurantImageUrl: profile.imageUrl
+          restaurantImageUrl: profile.imageUrl,
+          restaurantType: profile.kategori
         });
       } catch (loadError) {
         setError(
@@ -147,7 +162,8 @@ export const Settings = () => {
       setRestaurantProfile({
         restaurantId: profile.id,
         restaurantName: profile.ad,
-        restaurantImageUrl: profile.imageUrl
+        restaurantImageUrl: profile.imageUrl,
+        restaurantType: profile.kategori
       });
       setRestaurantName(profile.ad);
       setRestaurantImageUrl(profile.imageUrl ?? '');

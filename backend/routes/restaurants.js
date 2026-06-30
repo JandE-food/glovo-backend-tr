@@ -16,6 +16,15 @@ const buildMenuItemImage = (itemName) =>
     `realistic ${itemName || 'restaurant dish'} plated for a food delivery app menu, appetizing presentation, natural lighting, professional food photography`
   )}&image_size=square_hd`;
 
+const allowedRestaurantTypes = new Set([
+  'restaurants',
+  'breakfast',
+  'pide',
+  'desserts',
+  'market',
+  'pharmacy'
+]);
+
 const createDefaultMerchantMenu = () => [
   {
     id: `m-${Date.now()}-1`,
@@ -47,6 +56,10 @@ const createDefaultMerchantMenu = () => [
 ];
 
 const normalizeText = (value, fallback = '') => String(value ?? fallback).trim();
+const normalizeRestaurantType = (value, fallback = 'restaurants') => {
+  const normalized = normalizeText(value, fallback).toLocaleLowerCase('en-US');
+  return allowedRestaurantTypes.has(normalized) ? normalized : fallback;
+};
 
 const normalizeMenuItem = (item, index = 0) => ({
   id: normalizeText(item.id, `m-${Date.now()}-${index + 1}`),
@@ -144,7 +157,7 @@ const buildMerchantRestaurantPayload = (payload) =>
     aciklama: normalizeText(payload.aciklama, 'Fresh menu items available for delivery.'),
     puan: Number(payload.puan ?? 4.8),
     teslimatSuresi: normalizeText(payload.teslimatSuresi, '20-35 min'),
-    kategori: normalizeText(payload.kategori, 'restaurants'),
+    kategori: normalizeRestaurantType(payload.kategori, 'restaurants'),
     imageUrl: normalizeText(payload.imageUrl, buildRestaurantImage(payload.ad)),
     ownerUserId: normalizeText(payload.ownerUserId),
     ownerEmail: normalizeText(payload.ownerEmail).toLocaleLowerCase('en-US'),
@@ -165,7 +178,8 @@ const ensureMerchantRestaurant = async (payload) => {
     if (existingRestaurant) {
       existingRestaurant.ad = existingRestaurant.ad || restaurantData.ad;
       existingRestaurant.aciklama = existingRestaurant.aciklama || restaurantData.aciklama;
-      existingRestaurant.kategori = existingRestaurant.kategori || restaurantData.kategori;
+      existingRestaurant.kategori =
+        normalizeRestaurantType(existingRestaurant.kategori, '') || restaurantData.kategori;
       existingRestaurant.teslimatSuresi = existingRestaurant.teslimatSuresi || restaurantData.teslimatSuresi;
       existingRestaurant.imageUrl = existingRestaurant.imageUrl || restaurantData.imageUrl;
       existingRestaurant.ownerUserId = restaurantData.ownerUserId || existingRestaurant.ownerUserId;
@@ -229,6 +243,8 @@ router.get('/', async (request, response) => {
 
 router.get('/owner-profile', async (request, response) => {
   const ownerEmail = normalizeText(request.query.ownerEmail).toLocaleLowerCase('en-US');
+  const restaurantName = normalizeText(request.query.restaurantName, 'Cabuk Restaurant');
+  const restaurantType = normalizeRestaurantType(request.query.restaurantType, 'restaurants');
 
   if (!ownerEmail) {
     response.status(400).json({
@@ -238,27 +254,25 @@ router.get('/owner-profile', async (request, response) => {
   }
 
   if (mongoose.connection.readyState === 1) {
-    const restaurant = await Restaurant.findOne({ ownerEmail }).lean();
-
-    if (!restaurant) {
-      response.status(404).json({
-        message: 'Restaurant not found'
-      });
-      return;
-    }
+    const restaurant =
+      (await Restaurant.findOne({ ownerEmail }).lean()) ??
+      (await ensureMerchantRestaurant({
+        ad: restaurantName,
+        ownerEmail,
+        kategori: restaurantType
+      }));
 
     response.json({ restaurant: normalizeRestaurantRecord(restaurant) });
     return;
   }
 
-  const restaurant = findFallbackRestaurantByOwnerEmail(ownerEmail);
-
-  if (!restaurant) {
-    response.status(404).json({
-      message: 'Restaurant not found'
-    });
-    return;
-  }
+  const restaurant =
+    findFallbackRestaurantByOwnerEmail(ownerEmail) ??
+    (await ensureMerchantRestaurant({
+      ad: restaurantName,
+      ownerEmail,
+      kategori: restaurantType
+    }));
 
   response.json({ restaurant: normalizeRestaurantRecord(restaurant) });
 });

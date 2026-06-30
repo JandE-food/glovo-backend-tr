@@ -1,3 +1,11 @@
+export type MerchantRestaurantType =
+  | 'restaurants'
+  | 'breakfast'
+  | 'pide'
+  | 'desserts'
+  | 'market'
+  | 'pharmacy';
+
 export type SiparisDurumu =
   | 'received'
   | 'preparing'
@@ -51,6 +59,7 @@ export type MerchantRestaurantProfile = {
   aciklama?: string;
   imageUrl?: string;
   ownerEmail?: string;
+  kategori?: MerchantRestaurantType;
   menu: InventoryItem[];
 };
 

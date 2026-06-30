@@ -1,7 +1,13 @@
 import { useMemo } from 'react';
 import { create } from 'zustand';
 
-import type { InventoryItem, MerchantNotification, MerchantOrder, SiparisDurumu } from '../types';
+import type {
+  InventoryItem,
+  MerchantNotification,
+  MerchantOrder,
+  MerchantRestaurantType,
+  SiparisDurumu
+} from '../types';
 import { hesaplaFinansalOzet } from '../utils/merchant';
 import type { AppLanguage } from '../utils/i18n';
 
@@ -11,6 +17,7 @@ type MerchantState = {
   merchantRestaurantId: string;
   merchantRestaurantName: string;
   merchantRestaurantImageUrl: string;
+  merchantRestaurantType: MerchantRestaurantType;
   language: AppLanguage;
   orders: MerchantOrder[];
   notifications: MerchantNotification[];
@@ -20,12 +27,18 @@ type MerchantState = {
     restaurantId?: string;
     restaurantName?: string;
     restaurantImageUrl?: string;
+    restaurantType?: MerchantRestaurantType;
   }) => void;
   cikisYap: () => void;
   setLanguage: (language: AppLanguage) => void;
   setOrders: (orders: MerchantOrder[]) => void;
   setInventory: (inventory: InventoryItem[]) => void;
-  setRestaurantProfile: (payload: { restaurantId?: string; restaurantName?: string; restaurantImageUrl?: string }) => void;
+  setRestaurantProfile: (payload: {
+    restaurantId?: string;
+    restaurantName?: string;
+    restaurantImageUrl?: string;
+    restaurantType?: MerchantRestaurantType;
+  }) => void;
   yeniSiparisEkle: (order: MerchantOrder) => void;
   updateOrder: (order: MerchantOrder) => void;
   siparisDurumuGuncelle: (orderId: string, durum: SiparisDurumu) => void;
@@ -74,7 +87,8 @@ const getInitialMerchantSession = () => {
       merchantEmail: '',
       merchantRestaurantId: '',
       merchantRestaurantName: 'Maman Bistro',
-      merchantRestaurantImageUrl: ''
+      merchantRestaurantImageUrl: '',
+      merchantRestaurantType: 'restaurants'
     };
   }
 
@@ -85,7 +99,8 @@ const getInitialMerchantSession = () => {
       merchantEmail: '',
       merchantRestaurantId: '',
       merchantRestaurantName: 'Maman Bistro',
-      merchantRestaurantImageUrl: ''
+      merchantRestaurantImageUrl: '',
+      merchantRestaurantType: 'restaurants'
     };
   }
 
@@ -96,13 +111,15 @@ const getInitialMerchantSession = () => {
       merchantRestaurantId?: string;
       merchantRestaurantName?: string;
       merchantRestaurantImageUrl?: string;
+      merchantRestaurantType?: MerchantRestaurantType;
     };
     return {
       isAuthenticated: Boolean(parsed.isAuthenticated),
       merchantEmail: parsed.merchantEmail ?? '',
       merchantRestaurantId: parsed.merchantRestaurantId ?? '',
       merchantRestaurantName: parsed.merchantRestaurantName?.trim() || 'Maman Bistro',
-      merchantRestaurantImageUrl: parsed.merchantRestaurantImageUrl ?? ''
+      merchantRestaurantImageUrl: parsed.merchantRestaurantImageUrl ?? '',
+      merchantRestaurantType: parsed.merchantRestaurantType ?? 'restaurants'
     };
   } catch {
     return {
@@ -110,7 +127,8 @@ const getInitialMerchantSession = () => {
       merchantEmail: '',
       merchantRestaurantId: '',
       merchantRestaurantName: 'Maman Bistro',
-      merchantRestaurantImageUrl: ''
+      merchantRestaurantImageUrl: '',
+      merchantRestaurantType: 'restaurants'
     };
   }
 };
@@ -121,6 +139,7 @@ const persistMerchantSession = (payload: {
   merchantRestaurantId: string;
   merchantRestaurantName: string;
   merchantRestaurantImageUrl: string;
+  merchantRestaurantType: MerchantRestaurantType;
 }) => {
   if (typeof window === 'undefined') {
     return;
@@ -143,21 +162,23 @@ export const useMerchantStore = create<MerchantState>((set) => ({
   orders: [],
   notifications: [],
   inventory: [],
-  girisYap: ({ email, restaurantId, restaurantName, restaurantImageUrl }) => {
+  girisYap: ({ email, restaurantId, restaurantName, restaurantImageUrl, restaurantType }) => {
     const nextRestaurantName = restaurantName?.trim() || 'Maman Bistro';
     persistMerchantSession({
       isAuthenticated: true,
       merchantEmail: email,
       merchantRestaurantId: restaurantId ?? '',
       merchantRestaurantName: nextRestaurantName,
-      merchantRestaurantImageUrl: restaurantImageUrl ?? ''
+      merchantRestaurantImageUrl: restaurantImageUrl ?? '',
+      merchantRestaurantType: restaurantType ?? 'restaurants'
     });
     set({
       isAuthenticated: true,
       merchantEmail: email,
       merchantRestaurantId: restaurantId ?? '',
       merchantRestaurantName: nextRestaurantName,
-      merchantRestaurantImageUrl: restaurantImageUrl ?? ''
+      merchantRestaurantImageUrl: restaurantImageUrl ?? '',
+      merchantRestaurantType: restaurantType ?? 'restaurants'
     });
   },
   cikisYap: () => {
@@ -168,6 +189,7 @@ export const useMerchantStore = create<MerchantState>((set) => ({
       merchantRestaurantId: '',
       merchantRestaurantName: 'Maman Bistro',
       merchantRestaurantImageUrl: '',
+      merchantRestaurantType: 'restaurants',
       inventory: [],
       orders: []
     });
@@ -182,12 +204,13 @@ export const useMerchantStore = create<MerchantState>((set) => ({
   setInventory: (inventory) => {
     set({ inventory });
   },
-  setRestaurantProfile: ({ restaurantId, restaurantName, restaurantImageUrl }) => {
+  setRestaurantProfile: ({ restaurantId, restaurantName, restaurantImageUrl, restaurantType }) => {
     set((state) => {
       const nextState = {
         merchantRestaurantId: restaurantId ?? state.merchantRestaurantId,
         merchantRestaurantName: restaurantName?.trim() || state.merchantRestaurantName,
-        merchantRestaurantImageUrl: restaurantImageUrl ?? state.merchantRestaurantImageUrl
+        merchantRestaurantImageUrl: restaurantImageUrl ?? state.merchantRestaurantImageUrl,
+        merchantRestaurantType: restaurantType ?? state.merchantRestaurantType
       };
 
       persistMerchantSession({
@@ -195,7 +218,8 @@ export const useMerchantStore = create<MerchantState>((set) => ({
         merchantEmail: state.merchantEmail,
         merchantRestaurantId: nextState.merchantRestaurantId,
         merchantRestaurantName: nextState.merchantRestaurantName,
-        merchantRestaurantImageUrl: nextState.merchantRestaurantImageUrl
+        merchantRestaurantImageUrl: nextState.merchantRestaurantImageUrl,
+        merchantRestaurantType: nextState.merchantRestaurantType
       });
 
       return nextState;

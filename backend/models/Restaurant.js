@@ -56,7 +56,7 @@ const restaurantSchema = new mongoose.Schema(
     },
     kategori: {
       type: String,
-      default: 'restoran'
+      default: 'restaurants'
     },
     imageUrl: {
       type: String,

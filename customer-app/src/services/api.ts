@@ -179,7 +179,6 @@ let joinedCustomerRoomUserId: string | null = null;
 let joinedOrderRoomId: string | null = null;
 
 const categoryQueryMap: Record<string, string> = {
-  all: 'restaurants',
   restaurants: 'restaurants',
   breakfast: 'breakfast',
   pide: 'pide',
@@ -558,9 +557,12 @@ export const signup = async (name: string, email: string, password: string, phon
 
 export const getRestaurants = async (category: string) => {
   const response = await api.get<{ restaurants: RestaurantApiRecord[] }>('/restaurants', {
-    params: {
-      category: categoryQueryMap[category] ?? category
-    }
+    params:
+      category === 'all'
+        ? undefined
+        : {
+            category: categoryQueryMap[category] ?? category
+          }
   });
 
   return (response.data.restaurants ?? []).map(mapRestaurant);
